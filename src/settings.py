@@ -1,0 +1,23 @@
+# --- Game constants ---
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+FONT_NAME = "arial"
+FONT_SIZE = 30
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
+# --- Difficulty Settings ---
+DIFFICULTY_SETTINGS = {
+    "easy": {"words_to_catch": 5, "time_limit": 60, "money_multiplier": 1},
+    "medium": {"words_to_catch": 7, "time_limit": 45, "money_multiplier": 2},
+    "hard": {"words_to_catch": 10, "time_limit": 30, "money_multiplier": 3}
+}
+
+# --- Game assets ---
+WORDS_EASY = ["sol", "mar", "rio", "peixe", "barco", "isca", "rede", "agua"]
+WORDS_MEDIUM = ["pescador", "anzol", "oceano", "praia", "areia", "vento", "nuvem", "onda"]
+WORDS_HARD = ["horizonte", "profundeza", "tempestade", "maritimo", "nadadeira", "escama", "pescaria", "molinete"]
