@@ -1,15 +1,13 @@
 import pygame
 import random
+import os
 from src.settings import *
 
 class Fish(pygame.sprite.Sprite):
     def __init__(self, difficulty):
         super().__init__()
-        try:
-            self.image = pygame.image.load("images/fishes/fish.png").convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([100, 50])
-            self.image.fill(WHITE)
+        self.fish_images = [f for f in os.listdir("images/fishes") if f.endswith(".png")]
+        self.load_image()
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(0, SCREEN_WIDTH - self.rect.width)
         self.rect.y = random.randint(100, SCREEN_HEIGHT - self.rect.height)
@@ -25,6 +23,14 @@ class Fish(pygame.sprite.Sprite):
             self.word = random.choice(WORDS_HARD)
         self.text_surface = self.font.render(self.word, True, BLACK)
         self.text_rect = self.text_surface.get_rect(center=self.rect.center)
+
+    def load_image(self):
+        random_fish_image = random.choice(self.fish_images)
+        try:
+            self.image = pygame.image.load(f"images/fishes/{random_fish_image}").convert_alpha()
+        except pygame.error:
+            self.image = pygame.Surface([100, 50])
+            self.image.fill(WHITE)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
@@ -88,10 +94,13 @@ class Boat(pygame.sprite.Sprite):
             self.image.fill(RED)
 
 class Scenario(pygame.sprite.Sprite):
-    def __init__(self, area="river"):
+    def __init__(self, area="river", time_of_day=None):
         super().__init__()
         self.area = area
-        self.time_of_day = random.choice(["day", "night"])
+        if time_of_day:
+            self.time_of_day = time_of_day
+        else:
+            self.time_of_day = random.choice(["day", "night"])
         self.load_image()
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)

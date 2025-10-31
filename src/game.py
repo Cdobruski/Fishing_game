@@ -20,7 +20,7 @@ class Game:
         self.fishing_start_time = 0
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
-        self.background = Scenario()
+        self.background = Scenario("river", "day")
         self.boat = Boat(self.boat_level)
         self.fisherman = Fisherman(self.rod_level)
         self.fish = Fish(self.difficulty)
@@ -68,7 +68,7 @@ class Game:
         pygame.quit()
 
     def main_menu_screen(self):
-        self.screen.fill((0, 100, 200))
+        self.screen.blit(self.background.image, self.background.rect)
         title_font = pygame.font.SysFont(FONT_NAME, 70)
         option_font = pygame.font.SysFont(FONT_NAME, 50)
 
@@ -128,6 +128,7 @@ class Game:
                     self.reset_game()
                     self.game_state = "playing"
                 elif event.key == pygame.K_b:
+                    self.background = Scenario("river", "day")
                     self.game_state = "main_menu"
         return True
 
@@ -146,7 +147,7 @@ class Game:
             lake_text = option_font.render("Press L for Lake", True, WHITE)
             self.screen.blit(lake_text, (SCREEN_WIDTH/2 - lake_text.get_width()/2, 350))
         if self.boat_level >= 3:
-            beach_text = option_font.render("Press H for Beach", True, WHITE)
+            beach_text = option_font.render("Press P for Beach", True, WHITE)
             self.screen.blit(beach_text, (SCREEN_WIDTH/2 - beach_text.get_width()/2, 450))
 
         back_text = option_font.render("Press B to go Back", True, WHITE)
@@ -162,7 +163,7 @@ class Game:
                 elif event.key == pygame.K_l and self.boat_level >= 2:
                     self.background = Scenario("lake")
                     self.game_state = "difficulty_select"
-                elif event.key == pygame.K_h and self.boat_level >= 3:
+                elif event.key == pygame.K_p and self.boat_level >= 3:
                     self.background = Scenario("beach")
                     self.game_state = "difficulty_select"
                 elif event.key == pygame.K_b:
