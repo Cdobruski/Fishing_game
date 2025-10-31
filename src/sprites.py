@@ -9,7 +9,13 @@ class Fish(pygame.sprite.Sprite):
         self.float_level = float_level
         self.rarity = self.determine_rarity()
 
-        all_fish_images = [f for f in os.listdir("images/fishes") if f.endswith(".png")]
+        # This approach might not be ideal for PyInstaller. A better way would be to have a predefined list.
+        # However, we'll stick to this for now and adjust if needed.
+        try:
+            all_fish_images = [f for f in os.listdir(resource_path("images/fishes")) if f.endswith(".png")]
+        except FileNotFoundError:
+            all_fish_images = []
+
         self.legendary_fish_names = ["truta_lendaria.png", "peixe_fantasma.png", "narval.png"]
         self.common_fish_names = [f for f in all_fish_images if f not in self.legendary_fish_names]
 
@@ -46,7 +52,7 @@ class Fish(pygame.sprite.Sprite):
             fish_image_name = random.choice(self.common_fish_names)
 
         try:
-            self.image = pygame.image.load(f"images/fishes/{fish_image_name}").convert_alpha()
+            self.image = pygame.image.load(resource_path(f"images/fishes/{fish_image_name}")).convert_alpha()
         except pygame.error:
             self.image = pygame.Surface([100, 50])
             if self.rarity == "legendary":
@@ -86,7 +92,7 @@ class Fisherman(pygame.sprite.Sprite):
         self.animation_frames = []
         for i in range(10):
             try:
-                frame = pygame.image.load(f"images/fisherman/level_1_animation/{i}.png").convert_alpha()
+                frame = pygame.image.load(resource_path(f"images/fisherman/level_1_animation/{i}.png")).convert_alpha()
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
@@ -114,7 +120,7 @@ class Boat(pygame.sprite.Sprite):
 
     def load_image(self):
         try:
-            self.image = pygame.image.load(f"images/boat/boat_lvl_{self.boat_level}.png").convert_alpha()
+            self.image = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
         except pygame.error:
             self.image = pygame.Surface([200 + (self.boat_level - 1) * 20, 100])
             self.image.fill(RED)
@@ -133,7 +139,7 @@ class Scenario(pygame.sprite.Sprite):
 
     def load_image(self):
         try:
-            self.image = pygame.image.load(f"images/cenario/{self.area}_{self.time_of_day}.png").convert()
+            self.image = pygame.image.load(resource_path(f"images/cenario/{self.area}_{self.time_of_day}.png")).convert()
             self.image = pygame.transform.scale(self.image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         except pygame.error:
             self.image = pygame.Surface([SCREEN_WIDTH, SCREEN_HEIGHT])
@@ -152,7 +158,7 @@ class Float(pygame.sprite.Sprite):
 
     def load_image(self):
         try:
-            self.image = pygame.image.load(f"images/misc/boia_{self.float_level}.png").convert_alpha()
+            self.image = pygame.image.load(resource_path(f"images/misc/boia_{self.float_level}.png")).convert_alpha()
         except pygame.error:
             self.image = pygame.Surface([20, 20])
             self.image.fill(WHITE)
@@ -167,7 +173,7 @@ class Rod(pygame.sprite.Sprite):
 
     def load_image(self):
         try:
-            self.image = pygame.image.load(f"images/misc/vara_{self.rod_level}.png").convert_alpha()
+            self.image = pygame.image.load(resource_path(f"images/misc/vara_{self.rod_level}.png")).convert_alpha()
         except pygame.error:
             self.image = pygame.Surface([10, 100])
             self.image.fill(BLACK)
