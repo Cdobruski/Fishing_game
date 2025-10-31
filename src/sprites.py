@@ -55,16 +55,20 @@ class Fisherman(pygame.sprite.Sprite):
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
         self.last_update = pygame.time.get_ticks()
         self.animation_speed = 100 # milliseconds
+        self.rod_offsets = [
+            (20, -30), (22, -32), (24, -34), (26, -36), (28, -38),
+            (30, -40), (28, -38), (26, -36), (24, -34), (22, -32)
+        ]
 
     def load_animation_frames(self):
         self.animation_frames = []
         for i in range(10):
             try:
-                frame = pygame.image.load(f"images/fisherman/level_{self.rod_level}_animation/{i}.png").convert_alpha()
+                frame = pygame.image.load(f"images/fisherman/level_1_animation/{i}.png").convert_alpha()
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
-                frame = pygame.Surface([50 + (self.rod_level - 1) * 10, 100 + (self.rod_level - 1) * 10])
+                frame = pygame.Surface([50, 100])
                 frame.fill(GREEN)
                 self.animation_frames.append(frame)
 
@@ -115,3 +119,33 @@ class Scenario(pygame.sprite.Sprite):
                 self.image.fill((135, 206, 235)) # Sky blue
             else:
                 self.image.fill((0, 0, 50)) # Dark blue
+
+class Float(pygame.sprite.Sprite):
+    def __init__(self, float_level):
+        super().__init__()
+        self.float_level = float_level
+        self.load_image()
+        self.rect = self.image.get_rect()
+        self.rect.center = (SCREEN_WIDTH // 2 + 100, SCREEN_HEIGHT - 150)
+
+    def load_image(self):
+        try:
+            self.image = pygame.image.load(f"images/misc/boia_{self.float_level}.png").convert_alpha()
+        except pygame.error:
+            self.image = pygame.Surface([20, 20])
+            self.image.fill(WHITE)
+
+class Rod(pygame.sprite.Sprite):
+    def __init__(self, rod_level):
+        super().__init__()
+        self.rod_level = rod_level
+        self.load_image()
+        self.rect = self.image.get_rect()
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+
+    def load_image(self):
+        try:
+            self.image = pygame.image.load(f"images/misc/vara_{self.rod_level}.png").convert_alpha()
+        except pygame.error:
+            self.image = pygame.Surface([10, 100])
+            self.image.fill(BLACK)

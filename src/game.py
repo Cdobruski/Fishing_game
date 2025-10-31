@@ -16,6 +16,7 @@ class Game:
         self.money = 0
         self.boat_level = 1
         self.rod_level = 1
+        self.float_level = 1
         self.words_caught_count = 0
         self.fishing_start_time = 0
         self.load_data()
@@ -23,8 +24,10 @@ class Game:
         self.background = Scenario("river", "day")
         self.boat = Boat(self.boat_level)
         self.fisherman = Fisherman(self.rod_level)
+        self.rod = Rod(self.rod_level)
+        self.float = Float(self.float_level)
         self.fish = Fish(self.difficulty)
-        self.all_sprites.add(self.boat, self.fisherman)
+        self.all_sprites.add(self.boat, self.fisherman, self.rod, self.float)
         self.current_typed_word = ""
 
     def load_data(self):
@@ -37,17 +40,19 @@ class Game:
                 self.money = int(data[1])
                 self.boat_level = int(data[2])
                 self.rod_level = int(data[3])
+                self.float_level = int(data[4])
         except (FileNotFoundError, StopIteration):
             self.score = 0
             self.money = 0
             self.boat_level = 1
             self.rod_level = 1
+            self.float_level = 1
 
     def save_data(self):
         with open('player_data.csv', 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['score', 'money', 'boat_level', 'rod_level'])
-            writer.writerow([self.score, self.money, self.boat_level, self.rod_level])
+            writer.writerow(['score', 'money', 'boat_level', 'rod_level', 'float_level'])
+            writer.writerow([self.score, self.money, self.boat_level, self.rod_level, self.float_level])
 
     def run(self):
         running = True
@@ -72,10 +77,10 @@ class Game:
         title_font = pygame.font.SysFont(FONT_NAME, 70)
         option_font = pygame.font.SysFont(FONT_NAME, 50)
 
-        title_text = title_font.render("Typing Fishing Game", True, WHITE)
-        play_text = option_font.render("Press P to Play", True, WHITE)
-        upgrades_text = option_font.render("Press U for Upgrades", True, WHITE)
-        quit_text = option_font.render("Press Q to Quit", True, WHITE)
+        title_text = title_font.render("Jogo de Pesca com Digitação", True, WHITE)
+        play_text = option_font.render("Pressione J para Jogar", True, WHITE)
+        upgrades_text = option_font.render("Pressione M para Melhorias", True, WHITE)
+        quit_text = option_font.render("Pressione S para Sair", True, WHITE)
 
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
         self.screen.blit(play_text, (SCREEN_WIDTH/2 - play_text.get_width()/2, 300))
@@ -86,11 +91,11 @@ class Game:
             if event.type == pygame.QUIT:
                 return False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
+                if event.key == pygame.K_j:
                     self.game_state = "area_select"
-                elif event.key == pygame.K_u:
+                elif event.key == pygame.K_m:
                     self.game_state = "upgrades"
-                elif event.key == pygame.K_q:
+                elif event.key == pygame.K_s:
                     return False
         return True
 
@@ -99,11 +104,11 @@ class Game:
         title_font = pygame.font.SysFont(FONT_NAME, 70)
         option_font = pygame.font.SysFont(FONT_NAME, 50)
 
-        title_text = title_font.render("Select Difficulty", True, WHITE)
-        easy_text = option_font.render("Press E for Easy", True, WHITE)
-        medium_text = option_font.render("Press M for Medium", True, WHITE)
-        hard_text = option_font.render("Press H for Hard", True, WHITE)
-        back_text = option_font.render("Press B to go Back", True, WHITE)
+        title_text = title_font.render("Selecione a Dificuldade", True, WHITE)
+        easy_text = option_font.render("Pressione F para Fácil", True, WHITE)
+        medium_text = option_font.render("Pressione M para Médio", True, WHITE)
+        hard_text = option_font.render("Pressione D para Difícil", True, WHITE)
+        back_text = option_font.render("Pressione V para Voltar", True, WHITE)
 
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
         self.screen.blit(easy_text, (SCREEN_WIDTH/2 - easy_text.get_width()/2, 250))
@@ -115,7 +120,7 @@ class Game:
             if event.type == pygame.QUIT:
                 return False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_e:
+                if event.key == pygame.K_f:
                     self.difficulty = "easy"
                     self.reset_game()
                     self.game_state = "playing"
@@ -123,11 +128,11 @@ class Game:
                     self.difficulty = "medium"
                     self.reset_game()
                     self.game_state = "playing"
-                elif event.key == pygame.K_h:
+                elif event.key == pygame.K_d:
                     self.difficulty = "hard"
                     self.reset_game()
                     self.game_state = "playing"
-                elif event.key == pygame.K_b:
+                elif event.key == pygame.K_v:
                     self.background = Scenario("river", "day")
                     self.game_state = "main_menu"
         return True
@@ -137,20 +142,20 @@ class Game:
         title_font = pygame.font.SysFont(FONT_NAME, 70)
         option_font = pygame.font.SysFont(FONT_NAME, 50)
 
-        title_text = title_font.render("Select an Area", True, WHITE)
-        river_text = option_font.render("Press R for River", True, WHITE)
+        title_text = title_font.render("Selecione a Área", True, WHITE)
+        river_text = option_font.render("Pressione R para Rio", True, WHITE)
 
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
         self.screen.blit(river_text, (SCREEN_WIDTH/2 - river_text.get_width()/2, 250))
 
         if self.boat_level >= 2:
-            lake_text = option_font.render("Press L for Lake", True, WHITE)
+            lake_text = option_font.render("Pressione L para Lago", True, WHITE)
             self.screen.blit(lake_text, (SCREEN_WIDTH/2 - lake_text.get_width()/2, 350))
         if self.boat_level >= 3:
-            beach_text = option_font.render("Press P for Beach", True, WHITE)
+            beach_text = option_font.render("Pressione P para Praia", True, WHITE)
             self.screen.blit(beach_text, (SCREEN_WIDTH/2 - beach_text.get_width()/2, 450))
 
-        back_text = option_font.render("Press B to go Back", True, WHITE)
+        back_text = option_font.render("Pressione V para Voltar", True, WHITE)
         self.screen.blit(back_text, (SCREEN_WIDTH/2 - back_text.get_width()/2, 550))
 
         for event in pygame.event.get():
@@ -166,7 +171,7 @@ class Game:
                 elif event.key == pygame.K_p and self.boat_level >= 3:
                     self.background = Scenario("beach")
                     self.game_state = "difficulty_select"
-                elif event.key == pygame.K_b:
+                elif event.key == pygame.K_v:
                     self.game_state = "main_menu"
         return True
 
@@ -175,17 +180,19 @@ class Game:
         font = pygame.font.SysFont(FONT_NAME, 40)
 
         # --- Texts ---
-        title_text = font.render("Upgrades", True, WHITE)
-        money_text = font.render(f"Money: ${self.money}", True, WHITE)
-        boat_text = font.render(f"Boat Level: {self.boat_level} (Cost: ${self.boat_level*10}) - Press 1", True, WHITE)
-        rod_text = font.render(f"Rod Level: {self.rod_level} (Cost: ${self.rod_level*10}) - Press 2", True, WHITE)
-        back_text = font.render("Press B to go Back", True, WHITE)
+        title_text = font.render("Melhorias", True, WHITE)
+        money_text = font.render(f"Dinheiro: R${self.money}", True, WHITE)
+        boat_text = font.render(f"Nível do Barco: {self.boat_level} (Custo: R${self.boat_level*10}) - Pressione 1", True, WHITE)
+        rod_text = font.render(f"Nível da Vara: {self.rod_level} (Custo: R${self.rod_level*10}) - Pressione 2", True, WHITE)
+        float_text = font.render(f"Nível da Boia: {self.float_level} (Custo: R${self.float_level*10}) - Pressione 3", True, WHITE)
+        back_text = font.render("Pressione V para Voltar", True, WHITE)
 
         # --- Blitting ---
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 50))
         self.screen.blit(money_text, (20, 20))
         self.screen.blit(boat_text, (50, 200))
         self.screen.blit(rod_text, (50, 300))
+        self.screen.blit(float_text, (50, 400))
         self.screen.blit(back_text, (50, 500))
 
         for event in pygame.event.get():
@@ -205,8 +212,17 @@ class Game:
                         self.rod_level += 1
                         self.fisherman.rod_level = self.rod_level
                         self.fisherman.load_image()
+                        self.rod.rod_level = self.rod_level
+                        self.rod.load_image()
                         self.save_data()
-                elif event.key == pygame.K_b:
+                elif event.key == pygame.K_3:
+                    if self.money >= self.float_level * 10 and self.float_level < 4:
+                        self.money -= self.float_level * 10
+                        self.float_level += 1
+                        self.float.float_level = self.float_level
+                        self.float.load_image()
+                        self.save_data()
+                elif event.key == pygame.K_v:
                     self.game_state = "main_menu"
         return True
 
@@ -249,6 +265,9 @@ class Game:
 
         # Update
         self.fisherman.update()
+        offset_x, offset_y = self.fisherman.rod_offsets[self.fisherman.current_frame]
+        self.rod.rect.centerx = self.fisherman.rect.centerx + offset_x
+        self.rod.rect.centery = self.fisherman.rect.centery + offset_y
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
@@ -259,11 +278,11 @@ class Game:
         typed_text_surface = self.font.render(self.current_typed_word, True, WHITE)
         self.screen.blit(typed_text_surface, (10, 10))
 
-        score_surface = self.font.render(f"Score: {self.score}", True, WHITE)
+        score_surface = self.font.render(f"Pontuação: {self.score}", True, WHITE)
         self.screen.blit(score_surface, (SCREEN_WIDTH - score_surface.get_width() - 10, 10))
 
         time_left = time_limit - time_elapsed
-        timer_surface = self.font.render(f"Time: {int(time_left)}s", True, WHITE)
+        timer_surface = self.font.render(f"Tempo: {int(time_left)}s", True, WHITE)
         self.screen.blit(timer_surface, (SCREEN_WIDTH/2 - timer_surface.get_width()/2, 10))
 
         return True
