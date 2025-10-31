@@ -4,15 +4,30 @@ import os
 from src.settings import *
 
 class Fish(pygame.sprite.Sprite):
-    def __init__(self, difficulty):
+    def __init__(self, difficulty, float_level):
         super().__init__()
-        self.fish_images = [f for f in os.listdir("images/fishes") if f.endswith(".png")]
+        self.float_level = float_level
+        self.rarity = self.determine_rarity()
+
+        all_fish_images = [f for f in os.listdir("images/fishes") if f.endswith(".png")]
+        self.legendary_fish_names = ["truta_lendaria.png", "peixe_fantasma.png", "narval.png"]
+        self.common_fish_names = [f for f in all_fish_images if f not in self.legendary_fish_names]
+
+        if not self.common_fish_names:
+            self.common_fish_names.append("placeholder.png")
+
         self.load_image()
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(0, SCREEN_WIDTH - self.rect.width)
         self.rect.y = random.randint(100, SCREEN_HEIGHT - self.rect.height)
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
         self.new_word(difficulty)
+
+    def determine_rarity(self):
+        legendary_chance = self.float_level * 0.05
+        if random.random() < legendary_chance:
+            return "legendary"
+        return "common"
 
     def new_word(self, difficulty):
         if difficulty == "easy":
@@ -25,12 +40,19 @@ class Fish(pygame.sprite.Sprite):
         self.text_rect = self.text_surface.get_rect(center=self.rect.center)
 
     def load_image(self):
-        random_fish_image = random.choice(self.fish_images)
+        if self.rarity == "legendary":
+            fish_image_name = random.choice(self.legendary_fish_names)
+        else:
+            fish_image_name = random.choice(self.common_fish_names)
+
         try:
-            self.image = pygame.image.load(f"images/fishes/{random_fish_image}").convert_alpha()
+            self.image = pygame.image.load(f"images/fishes/{fish_image_name}").convert_alpha()
         except pygame.error:
             self.image = pygame.Surface([100, 50])
-            self.image.fill(WHITE)
+            if self.rarity == "legendary":
+                self.image.fill(GOLD)
+            else:
+                self.image.fill(WHITE)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)

@@ -26,7 +26,7 @@ class Game:
         self.fisherman = Fisherman(self.rod_level)
         self.rod = Rod(self.rod_level)
         self.float = Float(self.float_level)
-        self.fish = Fish(self.difficulty)
+        self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.boat, self.fisherman, self.rod, self.float)
         self.current_typed_word = ""
 
@@ -228,14 +228,18 @@ class Game:
 
     def reset_game(self):
         self.words_caught_count = 0
-        self.fish = Fish(self.difficulty)
+        self.fish = Fish(self.difficulty, self.float_level)
         self.current_typed_word = ""
         self.fishing_start_time = time.time()
 
     def game_loop(self):
         settings = DIFFICULTY_SETTINGS[self.difficulty]
         words_needed = settings["words_to_catch"] - (self.rod_level - 1)
-        time_limit = settings["time_limit"] + ((self.boat_level - 1) * 10)
+
+        if self.fish.rarity == "legendary":
+            words_needed += 5
+
+        time_limit = settings["time_limit"]
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -249,8 +253,12 @@ class Game:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
                         if self.words_caught_count >= words_needed:
-                            self.score += 1
-                            self.money += 1 * settings.get("money_multiplier", 1)
+                            if self.fish.rarity == "legendary":
+                                self.score += 10
+                                self.money += 10 * settings.get("money_multiplier", 1)
+                            else:
+                                self.score += 1
+                                self.money += 1 * settings.get("money_multiplier", 1)
                             self.save_data()
                             self.reset_game()
                         else:
