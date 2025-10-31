@@ -41,16 +41,36 @@ class Fisherman(pygame.sprite.Sprite):
     def __init__(self, rod_level):
         super().__init__()
         self.rod_level = rod_level
-        self.load_image()
+        self.animation_frames = []
+        self.load_animation_frames()
+        self.current_frame = 0
+        self.image = self.animation_frames[self.current_frame]
         self.rect = self.image.get_rect()
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+        self.last_update = pygame.time.get_ticks()
+        self.animation_speed = 100 # milliseconds
+
+    def load_animation_frames(self):
+        self.animation_frames = []
+        for i in range(10):
+            try:
+                frame = pygame.image.load(f"images/fisherman/level_{self.rod_level}_animation/{i}.png").convert_alpha()
+                self.animation_frames.append(frame)
+            except pygame.error:
+                # Create a placeholder if the image is not found
+                frame = pygame.Surface([50 + (self.rod_level - 1) * 10, 100 + (self.rod_level - 1) * 10])
+                frame.fill(GREEN)
+                self.animation_frames.append(frame)
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.animation_speed:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.animation_frames)
+            self.image = self.animation_frames[self.current_frame]
 
     def load_image(self):
-        try:
-            self.image = pygame.image.load(f"images/fisherman/fisherman_lvl_{self.rod_level}.png").convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([50 + (self.rod_level - 1) * 10, 100 + (self.rod_level - 1) * 10])
-            self.image.fill(GREEN)
+        self.load_animation_frames()
 
 class Boat(pygame.sprite.Sprite):
     def __init__(self, boat_level):

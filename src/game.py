@@ -246,6 +246,9 @@ class Game:
         if time_elapsed > time_limit:
             self.reset_game()
 
+        # Update
+        self.fisherman.update()
+
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
         self.all_sprites.draw(self.screen)
