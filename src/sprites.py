@@ -43,7 +43,7 @@ class Fish(pygame.sprite.Sprite):
         else:
             self.word = random.choice(WORDS_HARD)
         self.text_surface = self.font.render(self.word, True, BLACK)
-        self.text_rect = self.text_surface.get_rect(center=self.rect.center)
+        self.text_rect = self.text_surface.get_rect(midleft=self.rect.midright)
 
     def load_image(self):
         if self.rarity == "legendary":
@@ -52,17 +52,27 @@ class Fish(pygame.sprite.Sprite):
             fish_image_name = random.choice(self.common_fish_names)
 
         try:
-            self.image = pygame.image.load(resource_path(f"images/fishes/{fish_image_name}")).convert_alpha()
+            image = pygame.image.load(resource_path(f"images/fishes/{fish_image_name}")).convert_alpha()
+            self.image = pygame.transform.scale(image, (150, 80))
         except pygame.error:
-            self.image = pygame.Surface([100, 50])
+            self.image = pygame.Surface([150, 80])
             if self.rarity == "legendary":
                 self.image.fill(GOLD)
             else:
                 self.image.fill(WHITE)
 
-    def draw(self, surface):
+    def draw(self, surface, typed_word=""):
         surface.blit(self.image, self.rect)
-        surface.blit(self.text_surface, self.text_rect)
+        x_offset = 0
+        for i, char in enumerate(self.word):
+            color = BLACK
+            if i < len(typed_word) and typed_word[i] == char:
+                color = GREEN
+
+            char_surface = self.font.render(char, True, color)
+            char_rect = char_surface.get_rect(topleft=(self.text_rect.x + x_offset, self.text_rect.y))
+            surface.blit(char_surface, char_rect)
+            x_offset += char_surface.get_width()
 
     def draw_progress_bar(self, surface, words_caught, words_needed):
         if words_needed > 0:
@@ -80,7 +90,7 @@ class Fisherman(pygame.sprite.Sprite):
         self.current_frame = 0
         self.image = self.animation_frames[self.current_frame]
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 250)
         self.last_update = pygame.time.get_ticks()
         self.animation_speed = 100 # milliseconds
         self.rod_offsets = [
@@ -119,13 +129,14 @@ class Boat(pygame.sprite.Sprite):
         self.boat_level = boat_level
         self.load_image()
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200)
 
     def load_image(self):
         try:
-            self.image = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
+            image = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
+            self.image = pygame.transform.scale(image, (300, 150))
         except pygame.error:
-            self.image = pygame.Surface([200 + (self.boat_level - 1) * 20, 100])
+            self.image = pygame.Surface([300, 150])
             self.image.fill(RED)
 
 class Scenario(pygame.sprite.Sprite):

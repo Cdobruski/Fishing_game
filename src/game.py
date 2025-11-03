@@ -280,7 +280,7 @@ class Game:
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
         self.all_sprites.draw(self.screen)
-        self.fish.draw(self.screen)
+        self.fish.draw(self.screen, self.current_typed_word)
         self.fish.draw_progress_bar(self.screen, self.words_caught_count, words_needed)
 
         typed_text_surface = self.font.render(self.current_typed_word, True, WHITE)
