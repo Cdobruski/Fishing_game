@@ -58,9 +58,9 @@ class Fish(pygame.sprite.Sprite):
 
         try:
             image = pygame.image.load(resource_path(f"images/fishes/{fish_image_name}")).convert_alpha()
-            self.image = pygame.transform.scale(image, (150, 80))
+            self.image = pygame.transform.scale(image, (75, 40))
         except pygame.error:
-            self.image = pygame.Surface([150, 80])
+            self.image = pygame.Surface([75, 40])
             if self.rarity == "legendary":
                 self.image.fill(GOLD)
             else:
@@ -70,7 +70,16 @@ class Fish(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
         x_offset = 0
         for i, char in enumerate(self.word):
-            color = BLACK
+            # Black outline
+            outline_color = BLACK
+            char_outline = self.font.render(char, True, outline_color)
+            for dx in [-1, 1]:
+                for dy in [-1, 1]:
+                    outline_rect = char_outline.get_rect(topleft=(self.text_rect.x + x_offset + dx, self.text_rect.y + dy))
+                    surface.blit(char_outline, outline_rect)
+
+            # White fill
+            color = WHITE
             if i < len(typed_word) and typed_word[i] == char:
                 color = GREEN
 
@@ -117,11 +126,11 @@ class Fisherman(pygame.sprite.Sprite):
             try:
                 # Correcting the filename format based on the screenshot.
                 frame = pygame.image.load(resource_path(f"images/fisherman/pixil-frame-{i}.png")).convert_alpha()
-                frame = pygame.transform.scale(frame, (150, 150))
+                frame = pygame.transform.scale(frame, (180, 150))
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
-                frame = pygame.Surface([150, 150])
+                frame = pygame.Surface([180, 150])
                 frame.fill(GREEN)
                 self.animation_frames.append(frame)
 
@@ -135,7 +144,7 @@ class Fisherman(pygame.sprite.Sprite):
                     self.animation_done = True
                     self.current_frame -= 1 # Stay on last frame
                 self.image = self.animation_frames[self.current_frame]
-        self.rect.centerx = self.boat.rect.centerx
+        self.rect.centerx = self.boat.rect.centerx + 50
         self.rect.bottom = self.boat.rect.top + 65
 
     def load_image(self):
@@ -147,7 +156,8 @@ class Boat(pygame.sprite.Sprite):
         self.boat_level = boat_level
         self.load_image()
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, WATERLINE_Y + 50)
+        self.rect.centerx = SCREEN_WIDTH // 2
+        self.rect.bottom = WATERLINE_Y
 
     def load_image(self):
         try:
