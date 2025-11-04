@@ -24,10 +24,15 @@ class Fish(pygame.sprite.Sprite):
 
         self.load_image()
         self.rect = self.image.get_rect()
-        self.rect.x = random.randint(0, SCREEN_WIDTH - self.rect.width)
-        self.rect.y = random.randint(100, SCREEN_HEIGHT - self.rect.height)
+        self.original_pos = (random.randint(0, SCREEN_WIDTH - self.rect.width),
+                             random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height))
+        self.rect.topleft = self.original_pos
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
         self.new_word(difficulty)
+
+    def update(self):
+        self.rect.x = self.original_pos[0] + random.randint(-2, 2)
+        self.rect.y = self.original_pos[1] + random.randint(-2, 2)
 
     def determine_rarity(self):
         legendary_chance = self.float_level * 0.05
@@ -53,9 +58,9 @@ class Fish(pygame.sprite.Sprite):
 
         try:
             image = pygame.image.load(resource_path(f"images/fishes/{fish_image_name}")).convert_alpha()
-            self.image = pygame.transform.scale(image, (150, 80))
+            self.image = pygame.transform.scale(image, (75, 40))
         except pygame.error:
-            self.image = pygame.Surface([150, 80])
+            self.image = pygame.Surface([75, 40])
             if self.rarity == "legendary":
                 self.image.fill(GOLD)
             else:
@@ -65,7 +70,16 @@ class Fish(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
         x_offset = 0
         for i, char in enumerate(self.word):
-            color = BLACK
+            # Black outline
+            outline_color = BLACK
+            char_outline = self.font.render(char, True, outline_color)
+            for dx in [-1, 1]:
+                for dy in [-1, 1]:
+                    outline_rect = char_outline.get_rect(topleft=(self.text_rect.x + x_offset + dx, self.text_rect.y + dy))
+                    surface.blit(char_outline, outline_rect)
+
+            # White fill
+            color = WHITE
             if i < len(typed_word) and typed_word[i] == char:
                 color = GREEN
 
@@ -93,10 +107,16 @@ class Fisherman(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.last_update = pygame.time.get_ticks()
         self.animation_speed = 100 # milliseconds
+        self.animation_done = False
         self.rod_offsets = [
             (20, -30), (22, -32), (24, -34), (26, -36), (28, -38),
             (30, -40), (28, -38), (26, -36), (24, -34), (22, -32)
         ]
+        self.rod_end_offset = (0, 80) # an approximation
+
+    def reset_animation(self):
+        self.current_frame = 0
+        self.animation_done = False
 
     def load_animation_frames(self):
         self.animation_frames = []
@@ -106,21 +126,25 @@ class Fisherman(pygame.sprite.Sprite):
             try:
                 # Correcting the filename format based on the screenshot.
                 frame = pygame.image.load(resource_path(f"images/fisherman/pixil-frame-{i}.png")).convert_alpha()
-                frame = pygame.transform.scale(frame, (80, 80))
+                frame = pygame.transform.scale(frame, (180, 150))
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
-                frame = pygame.Surface([80, 80])
+                frame = pygame.Surface([180, 150])
                 frame.fill(GREEN)
                 self.animation_frames.append(frame)
 
     def update(self):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > self.animation_speed:
-            self.last_update = now
-            self.current_frame = (self.current_frame + 1) % len(self.animation_frames)
-            self.image = self.animation_frames[self.current_frame]
-        self.rect.centerx = self.boat.rect.centerx
+        if not self.animation_done:
+            now = pygame.time.get_ticks()
+            if now - self.last_update > self.animation_speed:
+                self.last_update = now
+                self.current_frame += 1
+                if self.current_frame == len(self.animation_frames):
+                    self.animation_done = True
+                    self.current_frame -= 1 # Stay on last frame
+                self.image = self.animation_frames[self.current_frame]
+        self.rect.centerx = self.boat.rect.centerx + 50
         self.rect.bottom = self.boat.rect.top + 65
 
     def load_image(self):
@@ -132,12 +156,19 @@ class Boat(pygame.sprite.Sprite):
         self.boat_level = boat_level
         self.load_image()
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200)
+        self.rect.centerx = SCREEN_WIDTH // 2
+        self.rect.bottom = WATERLINE_Y + 75
 
     def load_image(self):
         try:
             image = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
             self.image = pygame.transform.scale(image, (300, 150))
+
+            # Add submerged effect
+            overlay = pygame.Surface((self.image.get_width(), self.image.get_height() // 2), pygame.SRCALPHA)
+            overlay.fill((0, 0, 50, 100)) # Dark blue with alpha
+            self.image.blit(overlay, (0, self.image.get_height() // 2))
+
         except pygame.error:
             self.image = pygame.Surface([300, 150])
             self.image.fill(RED)
@@ -174,46 +205,12 @@ class Scenario(pygame.sprite.Sprite):
             else:
                 self.image.fill((0, 0, 50)) # Dark blue
 
-class Float(pygame.sprite.Sprite):
-    def __init__(self, float_level):
-        super().__init__()
-        self.float_level = float_level
-        self.load_image()
-        self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2 + 100, SCREEN_HEIGHT - 150)
 
-    def load_image(self):
-        try:
-            self.image = pygame.image.load(resource_path(f"images/misc/boia ({self.float_level}).png")).convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([20, 20])
-            self.image.fill(WHITE)
-
-class Rod(pygame.sprite.Sprite):
-    def __init__(self, rod_level):
-        super().__init__()
-        self.rod_level = rod_level
-        self.load_image()
-        self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
-
-    def load_image(self):
-        try:
-            self.image = pygame.image.load(resource_path(f"images/misc/vara ({self.rod_level}).png")).convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([10, 100])
-            self.image.fill(BLACK)
-
-class Lantern(pygame.sprite.Sprite):
+class Water(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.load_image()
+        self.image = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT - WATERLINE_Y), pygame.SRCALPHA)
+        self.image.fill((0, 0, 50, 100)) # Dark blue with alpha
         self.rect = self.image.get_rect()
-        self.rect.center = (100, 375)
+        self.rect.topleft = (0, WATERLINE_Y)
 
-    def load_image(self):
-        try:
-            self.image = pygame.image.load(resource_path("images/misc/Lanterna.png")).convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([50, 50])
-            self.image.fill(GOLD)
