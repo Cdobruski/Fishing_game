@@ -157,12 +157,18 @@ class Boat(pygame.sprite.Sprite):
         self.load_image()
         self.rect = self.image.get_rect()
         self.rect.centerx = SCREEN_WIDTH // 2
-        self.rect.bottom = WATERLINE_Y
+        self.rect.bottom = WATERLINE_Y + 75
 
     def load_image(self):
         try:
             image = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
             self.image = pygame.transform.scale(image, (300, 150))
+
+            # Add submerged effect
+            overlay = pygame.Surface((self.image.get_width(), self.image.get_height() // 2), pygame.SRCALPHA)
+            overlay.fill((0, 0, 50, 100)) # Dark blue with alpha
+            self.image.blit(overlay, (0, self.image.get_height() // 2))
+
         except pygame.error:
             self.image = pygame.Surface([300, 150])
             self.image.fill(RED)
@@ -199,32 +205,5 @@ class Scenario(pygame.sprite.Sprite):
             else:
                 self.image.fill((0, 0, 50)) # Dark blue
 
-class Float(pygame.sprite.Sprite):
-    def __init__(self, float_level):
-        super().__init__()
-        self.float_level = float_level
-        self.load_image()
-        self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2 + 100, SCREEN_HEIGHT - 150)
 
-    def load_image(self):
-        try:
-            self.image = pygame.image.load(resource_path(f"images/misc/boia ({self.float_level}).png")).convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([20, 20])
-            self.image.fill(WHITE)
 
-class Rod(pygame.sprite.Sprite):
-    def __init__(self, rod_level):
-        super().__init__()
-        self.rod_level = rod_level
-        self.load_image()
-        self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
-
-    def load_image(self):
-        try:
-            self.image = pygame.image.load(resource_path(f"images/misc/vara ({self.rod_level}).png")).convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([10, 100])
-            self.image.fill(BLACK)

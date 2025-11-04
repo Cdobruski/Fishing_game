@@ -18,16 +18,12 @@ class Game:
         self.rod_level = 1
         self.float_level = 1
         self.words_caught_count = 0
-        self.fishing_start_time = time.time()
-        self.last_score = 0
-        self.last_money = 0
+        self.fishing_start_time = 0
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
         self.background = Scenario("river", "day")
         self.boat = Boat(self.boat_level)
         self.fisherman = Fisherman(self.rod_level, self.boat)
-        self.rod = Rod(self.rod_level)
-        self.float = Float(self.float_level)
         self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.boat, self.fisherman, self.fish)
         self.current_typed_word = ""
@@ -69,32 +65,10 @@ class Game:
                 running = self.game_loop()
             elif self.game_state == "upgrades":
                 running = self.upgrades_screen()
-            elif self.game_state == "conclusion":
-                running = self.conclusion_screen()
 
             pygame.display.flip()
 
         pygame.quit()
-
-    def conclusion_screen(self):
-        self.screen.fill((0, 0, 0))
-        font = pygame.font.SysFont(FONT_NAME, 50)
-        title_text = font.render("Fim de Jogo", True, WHITE)
-        score_text = font.render(f"Pontuação: {self.last_score}", True, WHITE)
-        money_text = font.render(f"Dinheiro: R${self.last_money}", True, WHITE)
-        continue_text = font.render("Pressione qualquer tecla para continuar", True, WHITE)
-
-        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
-        self.screen.blit(score_text, (SCREEN_WIDTH/2 - score_text.get_width()/2, 250))
-        self.screen.blit(money_text, (SCREEN_WIDTH/2 - money_text.get_width()/2, 350))
-        self.screen.blit(continue_text, (SCREEN_WIDTH/2 - continue_text.get_width()/2, 500))
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
-            if event.type == pygame.KEYDOWN:
-                self.game_state = "main_menu"
-        return True
 
     def main_menu_screen(self):
         self.screen.blit(self.background.image, self.background.rect)
@@ -106,10 +80,7 @@ class Game:
         upgrades_text = option_font.render("Pressione M para Melhorias", True, WHITE)
         quit_text = option_font.render("Pressione S para Sair", True, WHITE)
 
-        money_text = option_font.render(f"Dinheiro: R${self.money}", True, WHITE)
-
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
-        self.screen.blit(money_text, (20, 20))
         self.screen.blit(play_text, (SCREEN_WIDTH/2 - play_text.get_width()/2, 300))
         self.screen.blit(upgrades_text, (SCREEN_WIDTH/2 - upgrades_text.get_width()/2, 400))
         self.screen.blit(quit_text, (SCREEN_WIDTH/2 - quit_text.get_width()/2, 500))
@@ -149,15 +120,15 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
                     self.difficulty = "easy"
-                    self.start_new_game()
+                    self.reset_game()
                     self.game_state = "playing"
                 elif event.key == pygame.K_m:
                     self.difficulty = "medium"
-                    self.start_new_game()
+                    self.reset_game()
                     self.game_state = "playing"
                 elif event.key == pygame.K_d:
                     self.difficulty = "hard"
-                    self.start_new_game()
+                    self.reset_game()
                     self.game_state = "playing"
                 elif event.key == pygame.K_v:
                     self.background = Scenario("river", "day")
@@ -254,14 +225,10 @@ class Game:
         return True
 
     def reset_game(self):
-        self.game_state = "main_menu"
-
-    def start_new_game(self):
         self.words_caught_count = 0
         self.fish = Fish(self.difficulty, self.float_level)
         self.current_typed_word = ""
         self.fishing_start_time = time.time()
-        self.fisherman.reset_animation()
 
     def game_loop(self):
         settings = DIFFICULTY_SETTINGS[self.difficulty]
@@ -284,21 +251,14 @@ class Game:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
                         if self.words_caught_count >= words_needed:
-                            score_earned = 0
-                            money_earned = 0
                             if self.fish.rarity == "legendary":
-                                score_earned = 10 * settings.get("score_multiplier", 1)
-                                money_earned = 10 * settings.get("money_multiplier", 1)
+                                self.score += 10
+                                self.money += 10 * settings.get("money_multiplier", 1)
                             else:
-                                score_earned = 1 * settings.get("score_multiplier", 1)
-                                money_earned = 1 * settings.get("money_multiplier", 1)
-
-                            self.score += score_earned
-                            self.money += money_earned
-                            self.last_score = score_earned
-                            self.last_money = money_earned
+                                self.score += 1
+                                self.money += 1 * settings.get("money_multiplier", 1)
                             self.save_data()
-                            self.game_state = "conclusion"
+                            self.reset_game()
                         else:
                             self.fish.new_word(self.difficulty)
                         self.current_typed_word = ""
@@ -307,12 +267,13 @@ class Game:
 
         time_elapsed = time.time() - self.fishing_start_time
         if time_elapsed > time_limit:
-            self.last_score = 0
-            self.last_money = 0
-            self.game_state = "conclusion"
+            self.reset_game()
 
         # Update
-        self.all_sprites.update()
+        self.fisherman.update()
+        offset_x, offset_y = self.fisherman.rod_offsets[self.fisherman.current_frame]
+        self.rod.rect.centerx = self.fisherman.rect.centerx + offset_x
+        self.rod.rect.centery = self.fisherman.rect.centery + offset_y
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
