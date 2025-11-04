@@ -19,6 +19,8 @@ class Game:
         self.float_level = 1
         self.words_caught_count = 0
         self.fishing_start_time = time.time()
+        self.last_score = 0
+        self.last_money = 0
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
         self.background = Scenario("river", "day")
@@ -27,7 +29,7 @@ class Game:
         self.rod = Rod(self.rod_level)
         self.float = Float(self.float_level)
         self.fish = Fish(self.difficulty, self.float_level)
-        self.all_sprites.add(self.boat, self.fisherman, self.rod, self.float)
+        self.all_sprites.add(self.boat, self.fisherman, self.fish)
         self.current_typed_word = ""
 
     def load_data(self):
@@ -67,10 +69,32 @@ class Game:
                 running = self.game_loop()
             elif self.game_state == "upgrades":
                 running = self.upgrades_screen()
+            elif self.game_state == "conclusion":
+                running = self.conclusion_screen()
 
             pygame.display.flip()
 
         pygame.quit()
+
+    def conclusion_screen(self):
+        self.screen.fill((0, 0, 0))
+        font = pygame.font.SysFont(FONT_NAME, 50)
+        title_text = font.render("Fim de Jogo", True, WHITE)
+        score_text = font.render(f"Pontuação: {self.last_score}", True, WHITE)
+        money_text = font.render(f"Dinheiro: R${self.last_money}", True, WHITE)
+        continue_text = font.render("Pressione qualquer tecla para continuar", True, WHITE)
+
+        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
+        self.screen.blit(score_text, (SCREEN_WIDTH/2 - score_text.get_width()/2, 250))
+        self.screen.blit(money_text, (SCREEN_WIDTH/2 - money_text.get_width()/2, 350))
+        self.screen.blit(continue_text, (SCREEN_WIDTH/2 - continue_text.get_width()/2, 500))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN:
+                self.game_state = "main_menu"
+        return True
 
     def main_menu_screen(self):
         self.screen.blit(self.background.image, self.background.rect)
@@ -210,7 +234,7 @@ class Game:
                         self.boat.load_image()
                         self.save_data()
                 elif event.key == pygame.K_2:
-                    if self.money >= self.rod_.level * 10 and self.rod_level < 3:
+                    if self.money >= self.rod_level * 10 and self.rod_level < 3:
                         self.money -= self.rod_level * 10
                         self.rod_level += 1
                         self.fisherman.rod_level = self.rod_level
@@ -260,14 +284,21 @@ class Game:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
                         if self.words_caught_count >= words_needed:
+                            score_earned = 0
+                            money_earned = 0
                             if self.fish.rarity == "legendary":
-                                self.score += 10
-                                self.money += 10 * settings.get("money_multiplier", 1)
+                                score_earned = 10 * settings.get("score_multiplier", 1)
+                                money_earned = 10 * settings.get("money_multiplier", 1)
                             else:
-                                self.score += 1
-                                self.money += 1 * settings.get("money_multiplier", 1)
+                                score_earned = 1 * settings.get("score_multiplier", 1)
+                                money_earned = 1 * settings.get("money_multiplier", 1)
+
+                            self.score += score_earned
+                            self.money += money_earned
+                            self.last_score = score_earned
+                            self.last_money = money_earned
                             self.save_data()
-                            self.game_state = "main_menu"
+                            self.game_state = "conclusion"
                         else:
                             self.fish.new_word(self.difficulty)
                         self.current_typed_word = ""
@@ -276,15 +307,12 @@ class Game:
 
         time_elapsed = time.time() - self.fishing_start_time
         if time_elapsed > time_limit:
-            self.game_state = "main_menu"
+            self.last_score = 0
+            self.last_money = 0
+            self.game_state = "conclusion"
 
         # Update
-        self.fisherman.update()
-        offset_x, offset_y = self.fisherman.rod_offsets[self.fisherman.current_frame]
-        self.rod.rect.centerx = self.fisherman.rect.centerx + offset_x
-        self.rod.rect.centery = self.fisherman.rect.centery + offset_y
-        self.float.rect.centerx = self.rod.rect.centerx + self.fisherman.rod_end_offset[0]
-        self.float.rect.centery = self.rod.rect.centery + self.fisherman.rod_end_offset[1]
+        self.all_sprites.update()
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)

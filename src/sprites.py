@@ -24,10 +24,15 @@ class Fish(pygame.sprite.Sprite):
 
         self.load_image()
         self.rect = self.image.get_rect()
-        self.rect.x = random.randint(0, SCREEN_WIDTH - self.rect.width)
-        self.rect.y = random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height)
+        self.original_pos = (random.randint(0, SCREEN_WIDTH - self.rect.width),
+                             random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height))
+        self.rect.topleft = self.original_pos
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
         self.new_word(difficulty)
+
+    def update(self):
+        self.rect.x = self.original_pos[0] + random.randint(-2, 2)
+        self.rect.y = self.original_pos[1] + random.randint(-2, 2)
 
     def determine_rarity(self):
         legendary_chance = self.float_level * 0.05
@@ -112,11 +117,11 @@ class Fisherman(pygame.sprite.Sprite):
             try:
                 # Correcting the filename format based on the screenshot.
                 frame = pygame.image.load(resource_path(f"images/fisherman/pixil-frame-{i}.png")).convert_alpha()
-                frame = pygame.transform.scale(frame, (120, 120))
+                frame = pygame.transform.scale(frame, (150, 150))
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
-                frame = pygame.Surface([120, 120])
+                frame = pygame.Surface([150, 150])
                 frame.fill(GREEN)
                 self.animation_frames.append(frame)
 
@@ -142,7 +147,7 @@ class Boat(pygame.sprite.Sprite):
         self.boat_level = boat_level
         self.load_image()
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200)
+        self.rect.center = (SCREEN_WIDTH // 2, WATERLINE_Y + 50)
 
     def load_image(self):
         try:
