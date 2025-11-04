@@ -82,15 +82,15 @@ class Fish(pygame.sprite.Sprite):
             pygame.draw.rect(surface, GREEN, progress_bar_rect)
 
 class Fisherman(pygame.sprite.Sprite):
-    def __init__(self, rod_level):
+    def __init__(self, rod_level, boat):
         super().__init__()
         self.rod_level = rod_level
+        self.boat = boat
         self.animation_frames = []
         self.load_animation_frames()
         self.current_frame = 0
         self.image = self.animation_frames[self.current_frame]
         self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 250)
         self.last_update = pygame.time.get_ticks()
         self.animation_speed = 100 # milliseconds
         self.rod_offsets = [
@@ -106,10 +106,11 @@ class Fisherman(pygame.sprite.Sprite):
             try:
                 # Correcting the filename format based on the screenshot.
                 frame = pygame.image.load(resource_path(f"images/fisherman/pixil-frame-{i}.png")).convert_alpha()
+                frame = pygame.transform.scale(frame, (80, 80))
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
-                frame = pygame.Surface([50, 100])
+                frame = pygame.Surface([80, 80])
                 frame.fill(GREEN)
                 self.animation_frames.append(frame)
 
@@ -119,6 +120,8 @@ class Fisherman(pygame.sprite.Sprite):
             self.last_update = now
             self.current_frame = (self.current_frame + 1) % len(self.animation_frames)
             self.image = self.animation_frames[self.current_frame]
+        self.rect.centerx = self.boat.rect.centerx
+        self.rect.bottom = self.boat.rect.top + 65
 
     def load_image(self):
         self.load_animation_frames()
@@ -200,3 +203,17 @@ class Rod(pygame.sprite.Sprite):
         except pygame.error:
             self.image = pygame.Surface([10, 100])
             self.image.fill(BLACK)
+
+class Lantern(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.load_image()
+        self.rect = self.image.get_rect()
+        self.rect.center = (100, 375)
+
+    def load_image(self):
+        try:
+            self.image = pygame.image.load(resource_path("images/misc/Lanterna.png")).convert_alpha()
+        except pygame.error:
+            self.image = pygame.Surface([50, 50])
+            self.image.fill(GOLD)
