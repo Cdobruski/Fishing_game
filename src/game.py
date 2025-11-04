@@ -22,6 +22,7 @@ class Game:
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
         self.background = Scenario("river", "day")
+        self.water = Water()
         self.boat = Boat(self.boat_level)
         self.fisherman = Fisherman(self.rod_level, self.boat)
         self.fish = Fish(self.difficulty, self.float_level)
@@ -270,13 +271,11 @@ class Game:
             self.reset_game()
 
         # Update
-        self.fisherman.update()
-        offset_x, offset_y = self.fisherman.rod_offsets[self.fisherman.current_frame]
-        self.rod.rect.centerx = self.fisherman.rect.centerx + offset_x
-        self.rod.rect.centery = self.fisherman.rect.centery + offset_y
+        self.all_sprites.update()
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
+        self.screen.blit(self.water.image, self.water.rect)
         self.all_sprites.draw(self.screen)
         self.fish.draw(self.screen, self.current_typed_word)
         self.fish.draw_progress_bar(self.screen, self.words_caught_count, words_needed)

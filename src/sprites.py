@@ -206,4 +206,11 @@ class Scenario(pygame.sprite.Sprite):
                 self.image.fill((0, 0, 50)) # Dark blue
 
 
+class Water(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT - WATERLINE_Y), pygame.SRCALPHA)
+        self.image.fill((0, 0, 50, 100)) # Dark blue with alpha
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, WATERLINE_Y)
 
