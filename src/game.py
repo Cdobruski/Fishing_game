@@ -26,9 +26,8 @@ class Game:
         self.fisherman = Fisherman(self.rod_level, self.boat)
         self.rod = Rod(self.rod_level)
         self.float = Float(self.float_level)
-        self.lantern = Lantern()
         self.fish = Fish(self.difficulty, self.float_level)
-        self.all_sprites.add(self.boat, self.fisherman, self.float)
+        self.all_sprites.add(self.boat, self.fisherman, self.rod, self.float)
         self.current_typed_word = ""
 
     def load_data(self):
@@ -211,7 +210,7 @@ class Game:
                         self.boat.load_image()
                         self.save_data()
                 elif event.key == pygame.K_2:
-                    if self.money >= self.rod_level * 10 and self.rod_level < 3:
+                    if self.money >= self.rod_.level * 10 and self.rod_level < 3:
                         self.money -= self.rod_level * 10
                         self.rod_level += 1
                         self.fisherman.rod_level = self.rod_level
@@ -238,6 +237,7 @@ class Game:
         self.fish = Fish(self.difficulty, self.float_level)
         self.current_typed_word = ""
         self.fishing_start_time = time.time()
+        self.fisherman.reset_animation()
 
     def game_loop(self):
         settings = DIFFICULTY_SETTINGS[self.difficulty]
@@ -283,6 +283,8 @@ class Game:
         offset_x, offset_y = self.fisherman.rod_offsets[self.fisherman.current_frame]
         self.rod.rect.centerx = self.fisherman.rect.centerx + offset_x
         self.rod.rect.centery = self.fisherman.rect.centery + offset_y
+        self.float.rect.centerx = self.rod.rect.centerx + self.fisherman.rod_end_offset[0]
+        self.float.rect.centery = self.rod.rect.centery + self.fisherman.rod_end_offset[1]
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)

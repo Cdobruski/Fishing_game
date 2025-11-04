@@ -25,7 +25,7 @@ class Fish(pygame.sprite.Sprite):
         self.load_image()
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(0, SCREEN_WIDTH - self.rect.width)
-        self.rect.y = random.randint(100, SCREEN_HEIGHT - self.rect.height)
+        self.rect.y = random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height)
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
         self.new_word(difficulty)
 
@@ -93,10 +93,16 @@ class Fisherman(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.last_update = pygame.time.get_ticks()
         self.animation_speed = 100 # milliseconds
+        self.animation_done = False
         self.rod_offsets = [
             (20, -30), (22, -32), (24, -34), (26, -36), (28, -38),
             (30, -40), (28, -38), (26, -36), (24, -34), (22, -32)
         ]
+        self.rod_end_offset = (0, 80) # an approximation
+
+    def reset_animation(self):
+        self.current_frame = 0
+        self.animation_done = False
 
     def load_animation_frames(self):
         self.animation_frames = []
@@ -106,20 +112,24 @@ class Fisherman(pygame.sprite.Sprite):
             try:
                 # Correcting the filename format based on the screenshot.
                 frame = pygame.image.load(resource_path(f"images/fisherman/pixil-frame-{i}.png")).convert_alpha()
-                frame = pygame.transform.scale(frame, (80, 80))
+                frame = pygame.transform.scale(frame, (120, 120))
                 self.animation_frames.append(frame)
             except pygame.error:
                 # Create a placeholder if the image is not found
-                frame = pygame.Surface([80, 80])
+                frame = pygame.Surface([120, 120])
                 frame.fill(GREEN)
                 self.animation_frames.append(frame)
 
     def update(self):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > self.animation_speed:
-            self.last_update = now
-            self.current_frame = (self.current_frame + 1) % len(self.animation_frames)
-            self.image = self.animation_frames[self.current_frame]
+        if not self.animation_done:
+            now = pygame.time.get_ticks()
+            if now - self.last_update > self.animation_speed:
+                self.last_update = now
+                self.current_frame += 1
+                if self.current_frame == len(self.animation_frames):
+                    self.animation_done = True
+                    self.current_frame -= 1 # Stay on last frame
+                self.image = self.animation_frames[self.current_frame]
         self.rect.centerx = self.boat.rect.centerx
         self.rect.bottom = self.boat.rect.top + 65
 
@@ -203,17 +213,3 @@ class Rod(pygame.sprite.Sprite):
         except pygame.error:
             self.image = pygame.Surface([10, 100])
             self.image.fill(BLACK)
-
-class Lantern(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.load_image()
-        self.rect = self.image.get_rect()
-        self.rect.center = (100, 375)
-
-    def load_image(self):
-        try:
-            self.image = pygame.image.load(resource_path("images/misc/Lanterna.png")).convert_alpha()
-        except pygame.error:
-            self.image = pygame.Surface([50, 50])
-            self.image.fill(GOLD)
