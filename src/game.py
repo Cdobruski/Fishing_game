@@ -28,7 +28,7 @@ class Game:
         self.boat = Boat(self.boat_level)
         self.fisherman = Fisherman(self.rod_level, self.boat)
         self.fish = Fish(self.difficulty, self.float_level)
-        self.all_sprites.add(self.boat, self.fisherman, self.fish)
+        self.all_sprites.add(self.boat, self.fisherman)
         self.current_typed_word = ""
 
     def load_data(self):
