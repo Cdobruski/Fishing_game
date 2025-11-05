@@ -23,7 +23,7 @@ FONT_SIZE = 30
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-WATERLINE_Y = 450
+WATERLINE_Y = 200
 
 # --- Difficulty Settings ---
 DIFFICULTY_SETTINGS = {

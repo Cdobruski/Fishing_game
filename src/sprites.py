@@ -164,11 +164,6 @@ class Boat(pygame.sprite.Sprite):
             image = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
             self.image = pygame.transform.scale(image, (300, 150))
 
-            # Add submerged effect
-            overlay = pygame.Surface((self.image.get_width(), self.image.get_height() // 2), pygame.SRCALPHA)
-            overlay.fill((0, 0, 50, 100)) # Dark blue with alpha
-            self.image.blit(overlay, (0, self.image.get_height() // 2))
-
         except pygame.error:
             self.image = pygame.Surface([300, 150])
             self.image.fill(RED)
