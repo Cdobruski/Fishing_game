@@ -278,14 +278,8 @@ class Game:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
                         if self.words_caught_count >= words_needed:
-                            score_earned = 0
-                            money_earned = 0
-                            if self.fish.rarity == "legendary":
-                                score_earned = 10 * settings.get("score_multiplier", 1)
-                                money_earned = 10 * settings.get("money_multiplier", 1)
-                            else:
-                                score_earned = 1 * settings.get("score_multiplier", 1)
-                                money_earned = 1 * settings.get("money_multiplier", 1)
+                            score_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("score_multiplier", 1)
+                            money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
 
                             self.score += score_earned
                             self.money += money_earned

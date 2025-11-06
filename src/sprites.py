@@ -16,8 +16,9 @@ class Fish(pygame.sprite.Sprite):
         except FileNotFoundError:
             all_fish_images = []
 
-        self.legendary_fish_names = ["truta lendaria.png", "peixe_fantasma.png", "narval.png"] # Assuming ghost and narwhal are legendary
-        self.common_fish_names = [f for f in all_fish_images if f not in self.legendary_fish_names]
+        self.legendary_fish_names = ["truta lendária.png"]
+        self.epic_fish_names = ["Narval.png", "peixe_fantasma.png"]
+        self.common_fish_names = [f for f in all_fish_images if f not in self.legendary_fish_names and f not in self.epic_fish_names]
 
         if not self.common_fish_names:
             self.common_fish_names.append("placeholder.png")
@@ -35,10 +36,13 @@ class Fish(pygame.sprite.Sprite):
         self.rect.y = self.original_pos[1] + random.randint(-2, 2)
 
     def determine_rarity(self):
-        legendary_chance = self.float_level * 0.05
-        if random.random() < legendary_chance:
+        rand = random.random()
+        if rand < RARITY_CHANCES["legendary"]:
             return "legendary"
-        return "common"
+        elif rand < RARITY_CHANCES["legendary"] + RARITY_CHANCES["epic"]:
+            return "epic"
+        else:
+            return "common"
 
     def new_word(self, difficulty):
         if difficulty == "easy":
@@ -53,6 +57,8 @@ class Fish(pygame.sprite.Sprite):
     def load_image(self):
         if self.rarity == "legendary":
             fish_image_name = random.choice(self.legendary_fish_names)
+        elif self.rarity == "epic":
+            fish_image_name = random.choice(self.epic_fish_names)
         else:
             fish_image_name = random.choice(self.common_fish_names)
 
@@ -63,6 +69,8 @@ class Fish(pygame.sprite.Sprite):
             self.image = pygame.Surface([75, 40])
             if self.rarity == "legendary":
                 self.image.fill(GOLD)
+            elif self.rarity == "epic":
+                self.image.fill((128, 0, 128))
             else:
                 self.image.fill(WHITE)
 

@@ -32,6 +32,20 @@ DIFFICULTY_SETTINGS = {
     "hard": {"words_to_catch": 10, "time_limit": 30, "score_multiplier": 3, "money_multiplier": 3}
 }
 
+# Rarity chances
+RARITY_CHANCES = {
+    "common": 0.7,
+    "epic": 0.25,
+    "legendary": 0.05
+}
+
+# Money rewards by rarity
+RARITY_REWARDS = {
+    "common": 1,
+    "epic": 5,
+    "legendary": 10
+}
+
 # --- Game assets ---
 WORDS_EASY = ["sol", "mar", "rio", "peixe", "barco", "isca", "rede", "agua", "lua", "ceu", "sal", "luz", "cor", "ver", "ler", "fim", "bom", "mau", "rei", "lei", "pai", "mae", "filho", "irma", "amor", "paz", "vida"]
 WORDS_MEDIUM = ["pescador", "anzol", "oceano", "praia", "areia", "vento", "nuvem", "onda", "barranco", "castelo", "floresta", "montanha", "cachoeira", "orvalho", "neblina", "tempestade", "relampago", "trovao", "estrela", "planeta", "galaxia", "universo", "natureza", "animal", "planta", "flor", "fruta"]
