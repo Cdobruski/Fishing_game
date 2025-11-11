@@ -68,12 +68,59 @@ class Game:
                 running = self.game_loop()
             elif self.game_state == "upgrades":
                 running = self.upgrades_screen()
+            elif self.game_state == "fish_caught":
+                running = self.fish_caught_screen()
+            elif self.game_state == "reeling_animation":
+                running = self.reeling_animation_screen()
             elif self.game_state == "conclusion":
                 running = self.conclusion_screen()
 
             pygame.display.flip()
 
         pygame.quit()
+
+    def fish_caught_screen(self):
+        self.screen.blit(self.background.image, self.background.rect)
+        self.screen.blit(self.water.image, self.water.rect)
+        self.all_sprites.draw(self.screen)
+
+        # Fish animation
+        if not hasattr(self, 'fish_animation_start_time'):
+            self.fish_animation_start_time = time.time()
+
+        animation_duration = 2.0 # seconds
+        elapsed_time = time.time() - self.fish_animation_start_time
+
+        if elapsed_time < animation_duration:
+            scale = 1.0 + (elapsed_time / animation_duration) * 2.0
+            new_width = int(self.fish.image.get_width() * scale)
+            new_height = int(self.fish.image.get_height() * scale)
+            scaled_fish = pygame.transform.scale(self.fish.image, (new_width, new_height))
+            scaled_rect = scaled_fish.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+            self.screen.blit(scaled_fish, scaled_rect)
+        else:
+            del self.fish_animation_start_time
+            self.fisherman.state = "reeling"
+            self.game_state = "reeling_animation"
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+        return True
+
+    def reeling_animation_screen(self):
+        self.screen.blit(self.background.image, self.background.rect)
+        self.screen.blit(self.water.image, self.water.rect)
+        self.all_sprites.update()
+        self.all_sprites.draw(self.screen)
+
+        if self.fisherman.animation_complete:
+            self.game_state = "conclusion"
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+        return True
 
     def conclusion_screen(self):
         self.screen.fill((0, 0, 0))
@@ -256,6 +303,7 @@ class Game:
         self.all_sprites.add(self.fish)
         self.current_typed_word = ""
         self.fishing_start_time = time.time()
+        self.fisherman.reset_animation()
 
     def game_loop(self):
         settings = DIFFICULTY_SETTINGS[self.difficulty]
@@ -286,7 +334,8 @@ class Game:
                             self.last_score = score_earned
                             self.last_money = money_earned
                             self.save_data()
-                            self.game_state = "conclusion"
+                            self.fisherman.state = "hooked"
+                            self.game_state = "fish_caught"
                         else:
                             self.fish.new_word(self.difficulty)
                         self.current_typed_word = ""

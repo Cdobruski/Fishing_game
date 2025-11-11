@@ -53,6 +53,8 @@ class Fish(pygame.sprite.Sprite):
             self.word = random.choice(WORDS_HARD)
         self.text_surface = self.font.render(self.word, True, BLACK)
         self.text_rect = self.text_surface.get_rect(midleft=self.rect.midright)
+        if self.text_rect.right > SCREEN_WIDTH:
+            self.text_rect.midright = self.rect.midleft
 
     def load_image(self):
         if self.rarity == "legendary":
@@ -115,7 +117,8 @@ class Fisherman(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.last_update = pygame.time.get_ticks()
         self.animation_speed = 100 # milliseconds
-        self.animation_done = False
+        self.state = "casting" # casting, hooked, reeling
+        self.animation_complete = False
         self.rod_offsets = [
             (20, -30), (22, -32), (24, -34), (26, -36), (28, -38),
             (30, -40), (28, -38), (26, -36), (24, -34), (22, -32)
@@ -124,7 +127,8 @@ class Fisherman(pygame.sprite.Sprite):
 
     def reset_animation(self):
         self.current_frame = 0
-        self.animation_done = False
+        self.state = "casting"
+        self.animation_complete = False
 
     def load_animation_frames(self):
         self.animation_frames = []
@@ -143,15 +147,17 @@ class Fisherman(pygame.sprite.Sprite):
                 self.animation_frames.append(frame)
 
     def update(self):
-        if not self.animation_done:
-            now = pygame.time.get_ticks()
-            if now - self.last_update > self.animation_speed:
-                self.last_update = now
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.animation_speed:
+            self.last_update = now
+            if self.state == "casting" and self.current_frame < 5:
                 self.current_frame += 1
-                if self.current_frame == len(self.animation_frames):
-                    self.animation_done = True
-                    self.current_frame -= 1 # Stay on last frame
-                self.image = self.animation_frames[self.current_frame]
+            elif self.state == "reeling":
+                if self.current_frame < len(self.animation_frames) - 1:
+                    self.current_frame += 1
+                else:
+                    self.animation_complete = True
+            self.image = self.animation_frames[self.current_frame]
         self.rect.centerx = self.boat.rect.centerx + 50
         self.rect.bottom = self.boat.rect.top + 65
 
