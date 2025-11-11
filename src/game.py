@@ -24,6 +24,7 @@ class Game:
         self.current_session_score = 0
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
+        self.popups = pygame.sprite.Group()
         self.background = Scenario("river", "day")
         self.water = Water()
         self.boat = Boat(self.boat_level)
@@ -327,10 +328,11 @@ class Game:
                 elif event.key == pygame.K_RETURN:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
-
-                        word_time = time.time() - self.word_start_time
-                        points = max(1, 10 - int(word_time)) * len(self.fish.word)
-                        self.current_session_score += points
+                        word_score = len(self.fish.word) * settings.get("score_multiplier", 1)
+                        self.score += word_score
+                        popup = ScorePopup(self.fish.rect.centerx, self.fish.rect.top, word_score)
+                        self.all_sprites.add(popup)
+                        self.popups.add(popup)
 
                         if self.words_caught_count >= words_needed:
                             money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
@@ -355,11 +357,13 @@ class Game:
 
         # Update
         self.all_sprites.update()
+        self.popups.update()
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
         self.screen.blit(self.water.image, self.water.rect)
         self.all_sprites.draw(self.screen)
+        self.popups.draw(self.screen)
         self.fish.draw(self.screen, self.current_typed_word)
         self.fish.draw_progress_bar(self.screen, self.words_caught_count, words_needed)
 
