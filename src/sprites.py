@@ -150,7 +150,7 @@ class Fisherman(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_update > self.animation_speed:
             self.last_update = now
-            if self.state == "casting" and self.current_frame < 5:
+            if self.state == "casting" and self.current_frame < 6:
                 self.current_frame += 1
             elif self.state == "reeling":
                 if self.current_frame < len(self.animation_frames) - 1:
