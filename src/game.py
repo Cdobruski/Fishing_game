@@ -21,6 +21,7 @@ class Game:
         self.fishing_start_time = time.time()
         self.last_score = 0
         self.last_money = 0
+        self.current_session_score = 0
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
         self.background = Scenario("river", "day")
@@ -30,6 +31,7 @@ class Game:
         self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.boat, self.fisherman)
         self.current_typed_word = ""
+        self.word_start_time = time.time()
 
     def load_data(self):
         try:
@@ -37,13 +39,11 @@ class Game:
                 reader = csv.reader(file)
                 header = next(reader)
                 data = next(reader)
-                self.score = int(data[0])
-                self.money = int(data[1])
-                self.boat_level = int(data[2])
-                self.rod_level = int(data[3])
-                self.float_level = int(data[4])
+                self.money = int(data[0])
+                self.boat_level = int(data[1])
+                self.rod_level = int(data[2])
+                self.float_level = int(data[3])
         except (FileNotFoundError, StopIteration):
-            self.score = 0
             self.money = 0
             self.boat_level = 1
             self.rod_level = 1
@@ -52,8 +52,8 @@ class Game:
     def save_data(self):
         with open('player_data.csv', 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['score', 'money', 'boat_level', 'rod_level', 'float_level'])
-            writer.writerow([self.score, self.money, self.boat_level, self.rod_level, self.float_level])
+            writer.writerow(['money', 'boat_level', 'rod_level', 'float_level'])
+            writer.writerow([self.money, self.boat_level, self.rod_level, self.float_level])
 
     def run(self):
         running = True
@@ -298,11 +298,13 @@ class Game:
 
     def reset_game(self):
         self.words_caught_count = 0
+        self.current_session_score = 0
         self.fish.kill()
         self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.fish)
         self.current_typed_word = ""
         self.fishing_start_time = time.time()
+        self.word_start_time = time.time()
         self.fisherman.reset_animation()
 
     def game_loop(self):
@@ -325,19 +327,22 @@ class Game:
                 elif event.key == pygame.K_RETURN:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
-                        if self.words_caught_count >= words_needed:
-                            score_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("score_multiplier", 1)
-                            money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
 
-                            self.score += score_earned
+                        word_time = time.time() - self.word_start_time
+                        points = max(1, 10 - int(word_time)) * len(self.fish.word)
+                        self.current_session_score += points
+
+                        if self.words_caught_count >= words_needed:
+                            money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
                             self.money += money_earned
-                            self.last_score = score_earned
+                            self.last_score = self.current_session_score
                             self.last_money = money_earned
                             self.save_data()
                             self.fisherman.state = "hooked"
                             self.game_state = "fish_caught"
                         else:
                             self.fish.new_word(self.difficulty)
+                            self.word_start_time = time.time()
                         self.current_typed_word = ""
                 else:
                     self.current_typed_word += event.unicode
@@ -361,7 +366,7 @@ class Game:
         typed_text_surface = self.font.render(self.current_typed_word, True, WHITE)
         self.screen.blit(typed_text_surface, (10, 10))
 
-        score_surface = self.font.render(f"Pontuação: {self.score}", True, WHITE)
+        score_surface = self.font.render(f"Pontuação: {self.current_session_score}", True, WHITE)
         self.screen.blit(score_surface, (SCREEN_WIDTH - score_surface.get_width() - 10, 10))
 
         time_left = time_limit - time_elapsed

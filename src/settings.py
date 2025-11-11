@@ -23,7 +23,7 @@ FONT_SIZE = 30
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-WATERLINE_Y = 324
+WATERLINE_Y = 317
 
 # --- Difficulty Settings ---
 DIFFICULTY_SETTINGS = {
@@ -34,9 +34,9 @@ DIFFICULTY_SETTINGS = {
 
 # Rarity chances
 RARITY_CHANCES = {
-    "common": 0.7,
-    "epic": 0.25,
-    "legendary": 0.05
+    "common": 0.8,
+    "epic": 0.199,
+    "legendary": 0.001
 }
 
 # Money rewards by rarity
