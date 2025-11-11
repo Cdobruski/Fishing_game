@@ -328,11 +328,10 @@ class Game:
                 elif event.key == pygame.K_RETURN:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
-
-                        word_time = time.time() - self.word_start_time
-                        points = max(1, 10 - int(word_time)) * len(self.fish.word)
-                        self.current_session_score += points
-                        popup = ScorePopup(points, self.fish.rect.centerx, self.fish.rect.centery)
+                        word_score = len(self.fish.word) * settings.get("score_multiplier", 1)
+                        self.score += word_score
+                        popup = ScorePopup(self.fish.rect.centerx, self.fish.rect.top, word_score)
+                        self.all_sprites.add(popup)
                         self.popups.add(popup)
 
                         if self.words_caught_count >= words_needed:

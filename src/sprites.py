@@ -224,20 +224,19 @@ class Water(pygame.sprite.Sprite):
         self.rect.topleft = (0, WATERLINE_Y)
 
 class ScorePopup(pygame.sprite.Sprite):
-    def __init__(self, score, x, y):
+    def __init__(self, x, y, score):
         super().__init__()
-        self.font = pygame.font.SysFont(FONT_NAME, 50)
+        self.font = pygame.font.SysFont(FONT_NAME, 24)
         self.image = self.font.render(f"+{score}", True, GOLD)
-        rand_x = random.randint(100, SCREEN_WIDTH - 100)
-        rand_y = random.randint(100, SCREEN_HEIGHT - 100)
-        self.rect = self.image.get_rect(center=(rand_x, rand_y))
-        self.creation_time = pygame.time.get_ticks()
-        self.speed_y = -2
+        self.rect = self.image.get_rect(center=(x, y))
         self.alpha = 255
+        self.y_velocity = -1
+        self.fade_rate = 5
+        self.creation_time = pygame.time.get_ticks()
 
     def update(self):
-        self.rect.y += self.speed_y
-        self.alpha -= 5
+        self.rect.y += self.y_velocity
+        self.alpha -= self.fade_rate
         if self.alpha <= 0:
             self.kill()
         else:
