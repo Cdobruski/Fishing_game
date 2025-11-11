@@ -328,10 +328,11 @@ class Game:
                 elif event.key == pygame.K_RETURN:
                     if self.current_typed_word == self.fish.word:
                         self.words_caught_count += 1
-                        word_score = len(self.fish.word) * settings.get("score_multiplier", 1)
-                        self.score += word_score
-                        popup = ScorePopup(self.fish.rect.centerx, self.fish.rect.top, word_score)
-                        self.all_sprites.add(popup)
+
+                        word_time = time.time() - self.word_start_time
+                        points = max(1, 10 - int(word_time)) * len(self.fish.word)
+                        self.current_session_score += points
+                        popup = ScorePopup(points, self.fish.rect.centerx, self.fish.rect.centery)
                         self.popups.add(popup)
 
                         if self.words_caught_count >= words_needed:
@@ -351,7 +352,7 @@ class Game:
 
         time_elapsed = time.time() - self.fishing_start_time
         if time_elapsed > time_limit:
-            self.last_score = 0
+            self.last_score = self.current_session_score
             self.last_money = 0
             self.game_state = "conclusion"
 
@@ -361,10 +362,11 @@ class Game:
 
         # Drawing code here
         self.screen.blit(self.background.image, self.background.rect)
-        self.screen.blit(self.water.image, self.water.rect)
-        self.all_sprites.draw(self.screen)
-        self.popups.draw(self.screen)
+        self.screen.blit(self.boat.image, self.boat.rect)
         self.fish.draw(self.screen, self.current_typed_word)
+        self.screen.blit(self.water.image, self.water.rect)
+        self.screen.blit(self.fisherman.image, self.fisherman.rect)
+        self.popups.draw(self.screen)
         self.fish.draw_progress_bar(self.screen, self.words_caught_count, words_needed)
 
         typed_text_surface = self.font.render(self.current_typed_word, True, WHITE)
