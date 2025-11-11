@@ -150,7 +150,7 @@ class Fisherman(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_update > self.animation_speed:
             self.last_update = now
-            if self.state == "casting" and self.current_frame < 5:
+            if self.state == "casting" and self.current_frame < 6:
                 self.current_frame += 1
             elif self.state == "reeling":
                 if self.current_frame < len(self.animation_frames) - 1:
@@ -223,3 +223,22 @@ class Water(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, WATERLINE_Y)
 
+class ScorePopup(pygame.sprite.Sprite):
+    def __init__(self, score, x, y):
+        super().__init__()
+        self.font = pygame.font.SysFont(FONT_NAME, 50)
+        self.image = self.font.render(f"+{score}", True, GOLD)
+        rand_x = random.randint(100, SCREEN_WIDTH - 100)
+        rand_y = random.randint(100, SCREEN_HEIGHT - 100)
+        self.rect = self.image.get_rect(center=(rand_x, rand_y))
+        self.creation_time = pygame.time.get_ticks()
+        self.speed_y = -2
+        self.alpha = 255
+
+    def update(self):
+        self.rect.y += self.speed_y
+        self.alpha -= 5
+        if self.alpha <= 0:
+            self.kill()
+        else:
+            self.image.set_alpha(self.alpha)
