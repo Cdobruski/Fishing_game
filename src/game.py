@@ -8,7 +8,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Typing Fishing Game")
+        pygame.display.set_caption("Type Fishing")
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
         self.game_state = "main_menu"
         self.difficulty = "easy"
@@ -81,9 +81,11 @@ class Game:
         pygame.quit()
 
     def fish_caught_screen(self):
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))
         self.screen.blit(self.background.image, self.background.rect)
         self.screen.blit(self.water.image, self.water.rect)
-        self.all_sprites.draw(self.screen)
+        self.screen.blit(overlay, (0, 0))
 
         # Fish animation
         if not hasattr(self, 'fish_animation_start_time'):
@@ -99,6 +101,11 @@ class Game:
             scaled_fish = pygame.transform.scale(self.fish.image, (new_width, new_height))
             scaled_rect = scaled_fish.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
             self.screen.blit(scaled_fish, scaled_rect)
+
+            font = pygame.font.SysFont(FONT_NAME, 40)
+            text = font.render(self.fish.name, True, WHITE)
+            text_rect = text.get_rect(center=(SCREEN_WIDTH/2, scaled_rect.bottom + 30))
+            self.screen.blit(text, text_rect)
         else:
             del self.fish_animation_start_time
             self.fisherman.state = "reeling"

@@ -64,6 +64,8 @@ class Fish(pygame.sprite.Sprite):
         else:
             fish_image_name = random.choice(self.common_fish_names)
 
+        self.name = fish_image_name.split('.')[0]
+
         try:
             image = pygame.image.load(resource_path(f"images/fishes/{fish_image_name}")).convert_alpha()
             self.image = pygame.transform.scale(image, (75, 40))
