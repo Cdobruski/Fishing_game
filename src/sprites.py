@@ -1,6 +1,5 @@
 import pygame
 import random
-import os
 from src.settings import *
 
 class Fish(pygame.sprite.Sprite):
