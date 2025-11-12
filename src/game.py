@@ -22,6 +22,8 @@ class Game:
         self.last_score = 0
         self.last_money = 0
         self.current_session_score = 0
+        self.total_typing_time = 0.0
+        self.run_history = []
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
         self.popups = pygame.sprite.Group()
@@ -38,23 +40,59 @@ class Game:
         try:
             with open('player_data.csv', 'r') as file:
                 reader = csv.reader(file)
-                header = next(reader)
-                data = next(reader)
-                self.money = int(data[0])
-                self.boat_level = int(data[1])
-                self.rod_level = int(data[2])
-                self.float_level = int(data[3])
+
+                # Leitura dos dados do jogador
+                player_header = next(reader)
+                player_data = next(reader)
+                self.money = int(player_data[0])
+                self.boat_level = int(player_data[1])
+                self.rod_level = int(player_data[2])
+                self.float_level = int(player_data[3])
+
+                # Leitura do histórico de corridas
+                history_header = next(reader)
+                for row in reader:
+                    run_data = {
+                        "timestamp": float(row[0]),
+                        "difficulty": row[1],
+                        "score": int(row[2]),
+                        "average_typing_time": float(row[3])
+                    }
+                    self.run_history.append(run_data)
         except (FileNotFoundError, StopIteration):
+            # Se o arquivo não existir ou estiver vazio, inicializa com valores padrão
             self.money = 0
             self.boat_level = 1
             self.rod_level = 1
             self.float_level = 1
+            self.run_history = []
 
     def save_data(self):
         with open('player_data.csv', 'w', newline='') as file:
             writer = csv.writer(file)
+
+            # Escreve os dados do jogador
             writer.writerow(['money', 'boat_level', 'rod_level', 'float_level'])
             writer.writerow([self.money, self.boat_level, self.rod_level, self.float_level])
+
+            # Escreve o histórico de corridas
+            writer.writerow(['timestamp', 'difficulty', 'score', 'average_typing_time'])
+            for run in self.run_history:
+                writer.writerow([run['timestamp'], run['difficulty'], run['score'], run['average_typing_time']])
+
+    def append_run_data(self):
+        if self.words_caught_count > 0:
+            average_time = self.total_typing_time / self.words_caught_count
+        else:
+            average_time = 0
+
+        run_data = {
+            "timestamp": time.time(),
+            "difficulty": self.difficulty,
+            "score": self.current_session_score,
+            "average_typing_time": average_time
+        }
+        self.run_history.append(run_data)
 
     def run(self):
         running = True
@@ -307,6 +345,7 @@ class Game:
     def reset_game(self):
         self.words_caught_count = 0
         self.current_session_score = 0
+        self.total_typing_time = 0.0
         self.fish.kill()
         self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.fish)
@@ -337,6 +376,7 @@ class Game:
                         self.words_caught_count += 1
 
                         word_time = time.time() - self.word_start_time
+                        self.total_typing_time += word_time
                         points = max(1, 10 - int(word_time)) * len(self.fish.word)
                         self.current_session_score += points
                         popup = ScorePopup(points, self.fish.rect.centerx, self.fish.rect.centery)
@@ -347,6 +387,7 @@ class Game:
                             self.money += money_earned
                             self.last_score = self.current_session_score
                             self.last_money = money_earned
+                            self.append_run_data()
                             self.save_data()
                             self.fisherman.state = "hooked"
                             self.game_state = "fish_caught"
@@ -361,6 +402,8 @@ class Game:
         if time_elapsed > time_limit:
             self.last_score = self.current_session_score
             self.last_money = 0
+            self.append_run_data()
+            self.save_data()
             self.game_state = "conclusion"
 
         # Update
