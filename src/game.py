@@ -24,6 +24,9 @@ class Game:
         self.current_session_score = 0
         self.total_typing_time = 0.0
         self.run_history = []
+        self.total_fish_caught = 0
+        self.total_money_earned = 0
+        self.session_start_time = time.time()
         self.load_data()
         self.all_sprites = pygame.sprite.Group()
         self.popups = pygame.sprite.Group()
@@ -40,59 +43,77 @@ class Game:
         try:
             with open('player_data.csv', 'r') as file:
                 reader = csv.reader(file)
-
-                # Leitura dos dados do jogador
                 player_header = next(reader)
                 player_data = next(reader)
-                self.money = int(player_data[0])
-                self.boat_level = int(player_data[1])
-                self.rod_level = int(player_data[2])
-                self.float_level = int(player_data[3])
 
-                # Leitura do histórico de corridas
+                data_map = {header: value for header, value in zip(player_header, player_data)}
+
+                self.money = int(data_map.get('money', 0))
+                self.boat_level = int(data_map.get('boat_level', 1))
+                self.rod_level = int(data_map.get('rod_level', 1))
+                self.float_level = int(data_map.get('float_level', 1))
+                self.total_fish_caught = int(data_map.get('total_fish_caught', 0))
+                self.total_money_earned = int(data_map.get('total_money_earned', 0))
+
                 history_header = next(reader)
                 for row in reader:
                     run_data = {
                         "timestamp": float(row[0]),
                         "difficulty": row[1],
                         "score": int(row[2]),
-                        "average_typing_time": float(row[3])
+                        "average_typing_time": float(row[3]),
+                        "play_time": float(row[4]) if len(row) > 4 else 0
                     }
                     self.run_history.append(run_data)
         except (FileNotFoundError, StopIteration):
-            # Se o arquivo não existir ou estiver vazio, inicializa com valores padrão
             self.money = 0
             self.boat_level = 1
             self.rod_level = 1
             self.float_level = 1
+            self.total_fish_caught = 0
+            self.total_money_earned = 0
             self.run_history = []
 
     def save_data(self):
         with open('player_data.csv', 'w', newline='') as file:
             writer = csv.writer(file)
+            player_header = ['money', 'boat_level', 'rod_level', 'float_level', 'total_fish_caught', 'total_money_earned']
+            player_data = [self.money, self.boat_level, self.rod_level, self.float_level, self.total_fish_caught, self.total_money_earned]
+            writer.writerow(player_header)
+            writer.writerow(player_data)
 
-            # Escreve os dados do jogador
-            writer.writerow(['money', 'boat_level', 'rod_level', 'float_level'])
-            writer.writerow([self.money, self.boat_level, self.rod_level, self.float_level])
-
-            # Escreve o histórico de corridas
-            writer.writerow(['timestamp', 'difficulty', 'score', 'average_typing_time'])
+            history_header = ['timestamp', 'difficulty', 'score', 'average_typing_time', 'play_time']
+            writer.writerow(history_header)
             for run in self.run_history:
-                writer.writerow([run['timestamp'], run['difficulty'], run['score'], run['average_typing_time']])
+                writer.writerow([run['timestamp'], run['difficulty'], run['score'], run['average_typing_time'], run.get('play_time', 0)])
 
     def append_run_data(self):
+        play_time = time.time() - self.session_start_time
         if self.words_caught_count > 0:
-            average_time = self.total_typing_time / self.words_caught_count
+            average_typing_time = self.total_typing_time / self.words_caught_count
+            average_typing_speed = sum(len(word) for word in self.fish.words_history) / self.total_typing_time if self.total_typing_time > 0 else 0
         else:
-            average_time = 0
+            average_typing_time = 0
+            average_typing_speed = 0
 
         run_data = {
             "timestamp": time.time(),
             "difficulty": self.difficulty,
             "score": self.current_session_score,
-            "average_typing_time": average_time
+            "average_typing_time": average_typing_time,
+            "average_typing_speed": average_typing_speed,
+            "play_time": play_time
         }
         self.run_history.append(run_data)
+
+    def calculate_averages(self):
+        if not self.run_history:
+            return 0, 0
+        total_score = sum(run['score'] for run in self.run_history)
+        total_play_time = sum(run['play_time'] for run in self.run_history)
+        average_score = total_score / len(self.run_history)
+        average_play_time = total_play_time / len(self.run_history)
+        return average_score, average_play_time
 
     def run(self):
         running = True
@@ -170,15 +191,25 @@ class Game:
 
     def conclusion_screen(self):
         self.screen.fill((0, 0, 0))
-        font = pygame.font.SysFont(FONT_NAME, 50)
+        font = pygame.font.SysFont(FONT_NAME, 40)
         title_text = font.render("Fim de Jogo", True, WHITE)
+
+        average_score, average_play_time = self.calculate_averages()
+
         score_text = font.render(f"Pontuação: {self.last_score}", True, WHITE)
         money_text = font.render(f"Dinheiro: R${self.last_money}", True, WHITE)
+        total_fish_text = font.render(f"Total de peixes pescados: {self.total_fish_caught}", True, WHITE)
+        avg_score_text = font.render(f"Pontuação média: {average_score:.2f}", True, WHITE)
+        avg_play_time_text = font.render(f"Tempo médio de jogo: {average_play_time:.2f}s", True, WHITE)
+
         continue_text = font.render("Pressione qualquer tecla para continuar", True, WHITE)
 
-        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
-        self.screen.blit(score_text, (SCREEN_WIDTH/2 - score_text.get_width()/2, 250))
-        self.screen.blit(money_text, (SCREEN_WIDTH/2 - money_text.get_width()/2, 350))
+        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 50))
+        self.screen.blit(score_text, (50, 150))
+        self.screen.blit(money_text, (50, 200))
+        self.screen.blit(total_fish_text, (50, 250))
+        self.screen.blit(avg_score_text, (50, 300))
+        self.screen.blit(avg_play_time_text, (50, 350))
         self.screen.blit(continue_text, (SCREEN_WIDTH/2 - continue_text.get_width()/2, 500))
 
         for event in pygame.event.get():
@@ -385,6 +416,8 @@ class Game:
                         if self.words_caught_count >= words_needed:
                             money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
                             self.money += money_earned
+                            self.total_money_earned += money_earned
+                            self.total_fish_caught += 1
                             self.last_score = self.current_session_score
                             self.last_money = money_earned
                             self.append_run_data()
