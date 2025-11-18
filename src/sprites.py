@@ -28,6 +28,7 @@ class Fish(pygame.sprite.Sprite):
                              random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height))
         self.rect.topleft = self.original_pos
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
+        self.words_history = []
         self.new_word(difficulty)
 
     def update(self):
@@ -50,6 +51,7 @@ class Fish(pygame.sprite.Sprite):
             self.word = random.choice(WORDS_MEDIUM)
         else:
             self.word = random.choice(WORDS_HARD)
+        self.words_history.append(self.word)
         self.text_surface = self.font.render(self.word, True, BLACK)
         self.text_rect = self.text_surface.get_rect(midleft=self.rect.midright)
         if self.text_rect.right > SCREEN_WIDTH:
