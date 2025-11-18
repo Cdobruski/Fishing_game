@@ -51,6 +51,7 @@ class Game:
             "catch": pygame.mixer.Sound(resource_path("audio/Som de pesca concluida.mp3")),
             "fail": pygame.mixer.Sound(resource_path("audio/falha_pesca.mp3")),
             "cast": pygame.mixer.Sound(resource_path("audio/jogou a vara.mp3")),
+            "vendor": pygame.mixer.Sound(resource_path("audio/Som vendedor 1.mp3")),
         }
 
     def play_music(self):
@@ -63,7 +64,6 @@ class Game:
 
         music_map = {
             "main_menu": "audio/Rio_dia.mp3",
-            "store": "audio/Som vendedor 1.mp3",
             "playing": f"audio/{area_name}_{self.background.time_of_day}.mp3"
         }
         music_file = music_map.get(self.game_state, "audio/Rio_dia.mp3")
@@ -275,7 +275,8 @@ class Game:
                     self.game_state = "area_select"
                 elif event.key == pygame.K_l:
                     self.game_state = "store"
-                    self.play_music()
+                    self.sounds["vendor"].play()
+                    pygame.mixer.music.stop()
                 elif event.key == pygame.K_s:
                     return False
         return True
@@ -353,6 +354,7 @@ class Game:
 
     def store_screen(self):
         store_background = pygame.image.load(resource_path("images/misc/store_background.png")).convert()
+        store_background = pygame.transform.scale(store_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(store_background, (0, 0))
         font = pygame.font.SysFont(FONT_NAME, 40)
 
@@ -383,6 +385,7 @@ class Game:
                         self.boat.boat_level = self.boat_level
                         self.boat.load_image()
                         self.save_data()
+                        self.sounds["vendor"].play()
                 elif event.key == pygame.K_2:
                     if self.money >= self.rod_level * 10 and self.rod_level < 3:
                         self.money -= self.rod_level * 10
@@ -392,6 +395,7 @@ class Game:
                         self.rod.rod_level = self.rod_level
                         self.rod.load_image()
                         self.save_data()
+                        self.sounds["vendor"].play()
                 elif event.key == pygame.K_3:
                     if self.money >= self.float_level * 10 and self.float_level < 4:
                         self.money -= self.float_level * 10
@@ -399,6 +403,7 @@ class Game:
                         self.float.float_level = self.float_level
                         self.float.load_image()
                         self.save_data()
+                        self.sounds["vendor"].play()
                 elif event.key == pygame.K_v:
                     self.game_state = "main_menu"
                     self.play_music()
