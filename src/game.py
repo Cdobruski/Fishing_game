@@ -55,10 +55,16 @@ class Game:
 
     def play_music(self):
         pygame.mixer.music.stop()
+        area_name_map = {
+            "river": "Rio",
+            "beach": "Praia"
+        }
+        area_name = area_name_map.get(self.background.area, "Rio")
+
         music_map = {
             "main_menu": "audio/Rio_dia.mp3",
             "store": "audio/Som vendedor 1.mp3",
-            "playing": f"audio/{self.background.area}_{self.background.time_of_day}.mp3"
+            "playing": f"audio/{area_name}_{self.background.time_of_day}.mp3"
         }
         music_file = music_map.get(self.game_state, "audio/Rio_dia.mp3")
         try:
@@ -250,18 +256,15 @@ class Game:
 
     def main_menu_screen(self):
         self.screen.blit(self.main_menu_background, (0, 0))
-        title_font = pygame.font.SysFont(FONT_NAME, 70)
         option_font = pygame.font.SysFont(FONT_NAME, 50)
 
-        title_text = title_font.render("Jogo de Pesca com Digitação", True, WHITE)
-        play_text = option_font.render("Pressione J para Jogar", True, WHITE)
-        upgrades_text = option_font.render("Pressione L para Loja", True, WHITE)
-        quit_text = option_font.render("Pressione S para Sair", True, WHITE)
+        play_text = option_font.render("Jogar", True, WHITE)
+        store_text = option_font.render("Loja", True, WHITE)
+        quit_text = option_font.render("Sair", True, WHITE)
 
-        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
-        self.screen.blit(play_text, (SCREEN_WIDTH/2 - play_text.get_width()/2, 300))
-        self.screen.blit(upgrades_text, (SCREEN_WIDTH/2 - upgrades_text.get_width()/2, 400))
-        self.screen.blit(quit_text, (SCREEN_WIDTH/2 - quit_text.get_width()/2, 500))
+        self.screen.blit(play_text, (SCREEN_WIDTH/2 - play_text.get_width()/2, 290))
+        self.screen.blit(store_text, (SCREEN_WIDTH/2 - store_text.get_width()/2, 390))
+        self.screen.blit(quit_text, (SCREEN_WIDTH/2 - quit_text.get_width()/2, 490))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
