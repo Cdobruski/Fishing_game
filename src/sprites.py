@@ -16,7 +16,7 @@ class Fish(pygame.sprite.Sprite):
             all_fish_images = []
 
         self.legendary_fish_names = ["truta lendária.png"]
-        self.epic_fish_names = ["Narval.png", "peixe_fantasma.png", "esturjão.png"]
+        self.epic_fish_names = ["Narval.png", "peixe_fantasma.png"]
         self.common_fish_names = [f for f in all_fish_images if f not in self.legendary_fish_names and f not in self.epic_fish_names]
 
         if not self.common_fish_names:
@@ -28,7 +28,6 @@ class Fish(pygame.sprite.Sprite):
                              random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height))
         self.rect.topleft = self.original_pos
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
-        self.words_history = []
         self.new_word(difficulty)
 
     def update(self):
@@ -51,7 +50,6 @@ class Fish(pygame.sprite.Sprite):
             self.word = random.choice(WORDS_MEDIUM)
         else:
             self.word = random.choice(WORDS_HARD)
-        self.words_history.append(self.word)
         self.text_surface = self.font.render(self.word, True, BLACK)
         self.text_rect = self.text_surface.get_rect(midleft=self.rect.midright)
         if self.text_rect.right > SCREEN_WIDTH:
@@ -247,9 +245,9 @@ class ScorePopup(pygame.sprite.Sprite):
             self.image.set_alpha(self.alpha)
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, text, font_size=50):
+    def __init__(self, x, y, width, height, text, font_size=50, image_path="images/button/botao.png"):
         super().__init__()
-        self.image = pygame.image.load(resource_path("images/buttons/button.png")).convert_alpha()
+        self.image = pygame.image.load(resource_path(image_path)).convert_alpha()
         self.image = pygame.transform.scale(self.image, (width, height))
         self.rect = self.image.get_rect(center=(x, y))
         self.font = pygame.font.SysFont(FONT_NAME, font_size)
