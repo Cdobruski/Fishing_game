@@ -452,6 +452,7 @@ class Game:
                 return False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    self.sounds["windlass"].stop()
                     self.game_state = "main_menu"
                 elif event.key == pygame.K_BACKSPACE:
                     self.current_typed_word = self.current_typed_word[:-1]
