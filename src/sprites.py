@@ -16,7 +16,7 @@ class Fish(pygame.sprite.Sprite):
             all_fish_images = []
 
         self.legendary_fish_names = ["truta lendária.png"]
-        self.epic_fish_names = ["Narval.png", "peixe_fantasma.png"]
+        self.epic_fish_names = ["Narval.png", "peixe_fantasma.png", "esturjão.png"]
         self.common_fish_names = [f for f in all_fish_images if f not in self.legendary_fish_names and f not in self.epic_fish_names]
 
         if not self.common_fish_names:
