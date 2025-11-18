@@ -368,7 +368,7 @@ class Game:
         return True
 
     def store_screen(self):
-        store_background = pygame.image.load(resource_path("images/misc/store_background.png")).convert()
+        store_background = pygame.image.load(resource_path("images/Store/menu_venda.png")).convert()
         store_background = pygame.transform.scale(store_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(store_background, (0, 0))
         font = pygame.font.SysFont(FONT_NAME, 40)
