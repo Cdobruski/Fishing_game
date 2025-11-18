@@ -245,3 +245,24 @@ class ScorePopup(pygame.sprite.Sprite):
             self.kill()
         else:
             self.image.set_alpha(self.alpha)
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height, text, font_size=50):
+        super().__init__()
+        self.image = pygame.image.load(resource_path("images/buttons/button.png")).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (width, height))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.font = pygame.font.SysFont(FONT_NAME, font_size)
+        self.text = text
+        self.text_surface = self.font.render(text, True, WHITE)
+        self.text_rect = self.text_surface.get_rect(center=self.rect.center)
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
+        surface.blit(self.text_surface, self.text_rect)
+
+    def is_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                return True
+        return False
