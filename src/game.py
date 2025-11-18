@@ -322,8 +322,10 @@ class Game:
                     self.game_state = "main_menu"
         return True
 
-    def upgrades_screen(self):
-        self.screen.fill((50, 50, 50))
+    def store_screen(self):
+        store_background = pygame.image.load(resource_path("images/Store/menu_venda.png")).convert()
+        store_background = pygame.transform.scale(store_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen.blit(store_background, (0, 0))
         font = pygame.font.SysFont(FONT_NAME, 40)
 
         # --- Texts ---
