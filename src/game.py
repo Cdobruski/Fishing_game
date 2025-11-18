@@ -52,6 +52,8 @@ class Game:
             "fail": pygame.mixer.Sound(resource_path("audio/falha_pesca.mp3")),
             "cast": pygame.mixer.Sound(resource_path("audio/jogou a vara.mp3")),
             "vendor": pygame.mixer.Sound(resource_path("audio/Som vendedor 1.mp3")),
+            "float_splash": pygame.mixer.Sound(resource_path("audio/boia na água.mp3")),
+            "windlass": pygame.mixer.Sound(resource_path("audio/durante a pesca.mp3")),
         }
 
     def play_music(self):
@@ -313,6 +315,7 @@ class Game:
                     self.reset_game()
                     self.game_state = "playing"
                     self.play_music()
+                    self.sounds["windlass"].play(-1)
                 elif event.key == pygame.K_v:
                     self.game_state = "main_menu"
                     self.play_music()
@@ -411,6 +414,7 @@ class Game:
 
     def reset_game(self):
         self.sounds["cast"].play()
+        self.sounds["float_splash"].play()
         self.words_caught_count = 0
         self.current_session_score = 0
         self.total_typing_time = 0.0
@@ -451,6 +455,7 @@ class Game:
                         self.popups.add(popup)
 
                         if self.words_caught_count >= words_needed:
+                            self.sounds["windlass"].stop()
                             self.sounds["catch"].play()
                             money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
                             self.money += money_earned
@@ -471,6 +476,7 @@ class Game:
 
         time_elapsed = time.time() - self.fishing_start_time
         if time_elapsed > time_limit:
+            self.sounds["windlass"].stop()
             self.sounds["fail"].play()
             self.last_score = self.current_session_score
             self.last_money = 0
