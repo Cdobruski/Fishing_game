@@ -37,6 +37,8 @@ class Game:
         self.main_menu_background = pygame.transform.scale(self.main_menu_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.water = Water()
         self.boat = Boat(self.boat_level)
+        self.rod = Rod(self.rod_level)
+        self.float = Float(self.float_level)
         self.fisherman = Fisherman(self.rod_level, self.boat)
         self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.boat, self.fisherman)
@@ -372,6 +374,7 @@ class Game:
         store_background = pygame.transform.scale(store_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(store_background, (0, 0))
         font = pygame.font.SysFont(FONT_NAME, 40)
+        small_font = pygame.font.SysFont(FONT_NAME, 30)
 
         # --- Texts ---
         title_text = font.render("Loja", True, WHITE)
@@ -383,15 +386,84 @@ class Game:
 
         # --- Blitting ---
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 50))
+        money_text = font.render(f"Dinheiro: R${self.money}", True, WHITE)
         self.screen.blit(money_text, (20, 20))
-        self.screen.blit(boat_text, (50, 200))
-        self.screen.blit(rod_text, (50, 300))
-        self.screen.blit(float_text, (50, 400))
-        self.screen.blit(back_text, (50, 500))
 
+        # --- Buttons ---
+        boat_cost = self.boat_level * 10
+        rod_cost = self.rod_level * 10
+        float_cost = self.float_level * 10
+
+        boat_text = f"Barco Nv. {self.boat_level+1}" if self.boat_level < 3 else "Barco Nv. Máx"
+        rod_text = f"Vara Nv. {self.rod_level+1}" if self.rod_level < 3 else "Vara Nv. Máx"
+        float_text = f"Boia Nv. {self.float_level+1}" if self.float_level < 4 else "Boia Nv. Máx"
+
+        boat_button = Button(SCREEN_WIDTH/2, 200, 300, 100, boat_text, font_size=30, image_path="images/button/botao grande.png")
+        rod_button = Button(SCREEN_WIDTH/2, 350, 300, 100, rod_text, font_size=30, image_path="images/button/botao grande.png")
+        float_button = Button(SCREEN_WIDTH/2, 500, 300, 100, float_text, font_size=30, image_path="images/button/botao grande.png")
+        back_button = Button(SCREEN_WIDTH/2, 650, 200, 80, "Voltar", font_size=40, image_path="images/button/botao.png")
+
+        buttons = [boat_button, rod_button, float_button, back_button]
+        for button in buttons:
+            button.draw(self.screen)
+
+        # --- Item Sprites and Costs ---
+        # Boat
+        boat_sprite = pygame.image.load(resource_path(f"images/boat/boat_lvl_{self.boat_level}.png")).convert_alpha()
+        boat_sprite = pygame.transform.scale(boat_sprite, (120, 60))
+        self.screen.blit(boat_sprite, (boat_button.rect.left - 140, boat_button.rect.centery - 30))
+        if self.boat_level < 3:
+            cost_text = small_font.render(f"Custo: R${boat_cost}", True, WHITE)
+            self.screen.blit(cost_text, (boat_button.rect.right + 20, boat_button.rect.centery - 15))
+
+        # Rod
+        rod_sprite = pygame.image.load(resource_path(f"images/misc/vara ({self.rod_level}).png")).convert_alpha()
+        rod_sprite = pygame.transform.scale(rod_sprite, (120, 60))
+        self.screen.blit(rod_sprite, (rod_button.rect.left - 140, rod_button.rect.centery - 30))
+        if self.rod_level < 3:
+            cost_text = small_font.render(f"Custo: R${rod_cost}", True, WHITE)
+            self.screen.blit(cost_text, (rod_button.rect.right + 20, rod_button.rect.centery - 15))
+
+        # Float
+        float_sprite = pygame.image.load(resource_path(f"images/misc/boia ({self.float_level}).png")).convert_alpha()
+        float_sprite = pygame.transform.scale(float_sprite, (60, 60))
+        self.screen.blit(float_sprite, (float_button.rect.left - 120, float_button.rect.centery - 30))
+        if self.float_level < 4:
+            cost_text = small_font.render(f"Custo: R${float_cost}", True, WHITE)
+            self.screen.blit(cost_text, (float_button.rect.right + 20, float_button.rect.centery - 15))
+
+        # --- Event Loop ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
+
+            if boat_button.is_clicked(event):
+                if self.money >= boat_cost and self.boat_level < 3:
+                    self.money -= boat_cost
+                    self.boat_level += 1
+                    self.boat.boat_level = self.boat_level
+                    self.boat.load_image()
+                    self.save_data()
+            elif rod_button.is_clicked(event):
+                if self.money >= rod_cost and self.rod_level < 3:
+                    self.money -= rod_cost
+                    self.rod_level += 1
+                    self.fisherman.rod_level = self.rod_level
+                    self.fisherman.load_image()
+                    self.rod.rod_level = self.rod_level
+                    self.rod.load_image()
+                    self.save_data()
+            elif float_button.is_clicked(event):
+                 if self.money >= float_cost and self.float_level < 4:
+                    self.money -= float_cost
+                    self.float_level += 1
+                    self.fish.float_level = self.float_level
+                    self.float.float_level = self.float_level
+                    self.float.load_image()
+                    self.save_data()
+            elif back_button.is_clicked(event):
+                self.game_state = "main_menu"
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
                     if self.money >= self.boat_level * 10 and self.boat_level < 3:
