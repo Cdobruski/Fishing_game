@@ -186,6 +186,38 @@ class Boat(pygame.sprite.Sprite):
             self.image = pygame.Surface([300, 150])
             self.image.fill(RED)
 
+class Rod(pygame.sprite.Sprite):
+    def __init__(self, rod_level):
+        super().__init__()
+        self.rod_level = rod_level
+        self.load_image()
+        self.rect = self.image.get_rect()
+
+    def load_image(self):
+        try:
+            image_path = resource_path(f"images/misc/vara ({self.rod_level}).png")
+            self.image = pygame.image.load(image_path).convert_alpha()
+            self.image = pygame.transform.scale(self.image, (120, 60))
+        except pygame.error:
+            self.image = pygame.Surface([120, 60])
+            self.image.fill(BROWN)
+
+class Float(pygame.sprite.Sprite):
+    def __init__(self, float_level):
+        super().__init__()
+        self.float_level = float_level
+        self.load_image()
+        self.rect = self.image.get_rect()
+
+    def load_image(self):
+        try:
+            image_path = resource_path(f"images/misc/boia ({self.float_level}).png")
+            self.image = pygame.image.load(image_path).convert_alpha()
+            self.image = pygame.transform.scale(self.image, (60, 60))
+        except pygame.error:
+            self.image = pygame.Surface([60, 60])
+            self.image.fill(BLUE)
+
 class Scenario(pygame.sprite.Sprite):
     def __init__(self, area="river", time_of_day=None):
         super().__init__()
