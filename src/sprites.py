@@ -8,6 +8,9 @@ class Fish(pygame.sprite.Sprite):
         self.float_level = float_level
         self.rarity = self.determine_rarity()
 
+        # ADIÇÃO: Inicializa a lista para rastrear palavras digitadas (para cálculo de velocidade média)
+        self.words_history = []
+
         # This approach might not be ideal for PyInstaller. A better way would be to have a predefined list.
         # However, we'll stick to this for now and adjust if needed.
         try:
