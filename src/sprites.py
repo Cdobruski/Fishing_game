@@ -266,3 +266,9 @@ class Button(pygame.sprite.Sprite):
             if self.rect.collidepoint(event.pos):
                 return True
         return False
+
+    def update_text(self, text):
+        if self.text != text:
+            self.text = text
+            self.text_surface = self.font.render(text, True, WHITE)
+            self.text_rect = self.text_surface.get_rect(center=self.rect.center)
