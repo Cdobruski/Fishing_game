@@ -289,7 +289,7 @@ class Game:
         return True
 
     def difficulty_select_screen(self):
-        self.screen.fill((0, 100, 200))
+        self.screen.blit(self.diff_bg, (0, 0))
         title_font = pygame.font.SysFont(FONT_NAME, 70)
         title_text = title_font.render("Selecione a Dificuldade", True, WHITE)
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
@@ -379,10 +379,6 @@ class Game:
         # --- Texts ---
         title_text = font.render("Loja", True, WHITE)
         money_text = font.render(f"Dinheiro: R${self.money}", True, WHITE)
-        boat_text = font.render(f"Nível do Barco: {self.boat_level} (Custo: R${self.boat_level*10}) - Pressione 1", True, WHITE)
-        rod_text = font.render(f"Nível da Vara: {self.rod_level} (Custo: R${self.rod_level*10}) - Pressione 2", True, WHITE)
-        float_text = font.render(f"Nível da Boia: {self.float_level} (Custo: R${self.float_level*10}) - Pressione 3", True, WHITE)
-        back_text = font.render("Pressione V para Voltar", True, WHITE)
 
         # --- Blitting ---
         self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 50))
