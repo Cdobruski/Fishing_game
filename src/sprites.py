@@ -8,9 +8,6 @@ class Fish(pygame.sprite.Sprite):
         self.float_level = float_level
         self.rarity = self.determine_rarity()
 
-        # ADIÇÃO: Inicializa a lista para rastrear palavras digitadas (para cálculo de velocidade média)
-        self.words_history = []
-
         # This approach might not be ideal for PyInstaller. A better way would be to have a predefined list.
         # However, we'll stick to this for now and adjust if needed.
         try:
@@ -31,6 +28,7 @@ class Fish(pygame.sprite.Sprite):
                              random.randint(WATERLINE_Y, SCREEN_HEIGHT - self.rect.height))
         self.rect.topleft = self.original_pos
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
+        self.words_history = []
         self.new_word(difficulty)
 
     def update(self):
@@ -53,6 +51,7 @@ class Fish(pygame.sprite.Sprite):
             self.word = random.choice(WORDS_MEDIUM)
         else:
             self.word = random.choice(WORDS_HARD)
+        self.words_history.append(self.word)
         self.text_surface = self.font.render(self.word, True, BLACK)
         self.text_rect = self.text_surface.get_rect(midleft=self.rect.midright)
         if self.text_rect.right > SCREEN_WIDTH:
@@ -186,38 +185,6 @@ class Boat(pygame.sprite.Sprite):
             self.image = pygame.Surface([300, 150])
             self.image.fill(RED)
 
-class Rod(pygame.sprite.Sprite):
-    def __init__(self, rod_level):
-        super().__init__()
-        self.rod_level = rod_level
-        self.load_image()
-        self.rect = self.image.get_rect()
-
-    def load_image(self):
-        try:
-            image_path = resource_path(f"images/misc/vara ({self.rod_level}).png")
-            self.image = pygame.image.load(image_path).convert_alpha()
-            self.image = pygame.transform.scale(self.image, (120, 60))
-        except pygame.error:
-            self.image = pygame.Surface([120, 60])
-            self.image.fill(BROWN)
-
-class Float(pygame.sprite.Sprite):
-    def __init__(self, float_level):
-        super().__init__()
-        self.float_level = float_level
-        self.load_image()
-        self.rect = self.image.get_rect()
-
-    def load_image(self):
-        try:
-            image_path = resource_path(f"images/misc/boia ({self.float_level}).png")
-            self.image = pygame.image.load(image_path).convert_alpha()
-            self.image = pygame.transform.scale(self.image, (60, 60))
-        except pygame.error:
-            self.image = pygame.Surface([60, 60])
-            self.image.fill(BLUE)
-
 class Scenario(pygame.sprite.Sprite):
     def __init__(self, area="river", time_of_day=None):
         super().__init__()
@@ -299,3 +266,9 @@ class Button(pygame.sprite.Sprite):
             if self.rect.collidepoint(event.pos):
                 return True
         return False
+
+    def update_text(self, text):
+        if self.text != text:
+            self.text = text
+            self.text_surface = self.font.render(text, True, WHITE)
+            self.text_rect = self.text_surface.get_rect(center=self.rect.center)
