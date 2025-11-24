@@ -70,16 +70,15 @@ class Game:
             self.diff_bg.fill((0, 0, 0))
 
         # Store buttons (creating them here so we can reuse them, but text might need update)
-        # Coordinates derived from background image analysis (Beige slots)
-        # Slots are approx at Y=340, 430, 520 with Center X=393 and Width=661
+        # Adjusted positions to be closer and at the bottom
         button_width = 661
         button_height = 60
         center_x = 393
 
-        self.btn_buy_boat = Button(center_x, 340, button_width, button_height, "")
-        self.btn_buy_rod = Button(center_x, 430, button_width, button_height, "")
-        self.btn_buy_float = Button(center_x, 520, button_width, button_height, "")
-        self.btn_store_back = Button(center_x, 580, 200, 30, "Voltar", font_size=30)
+        self.btn_buy_boat = Button(center_x, 350, button_width, button_height, "")
+        self.btn_buy_rod = Button(center_x, 420, button_width, button_height, "")
+        self.btn_buy_float = Button(center_x, 490, button_width, button_height, "")
+        self.btn_store_back = Button(center_x, 560, 200, 40, "Voltar", font_size=30)
         self.update_store_buttons()
 
     def update_store_buttons(self):
@@ -401,14 +400,6 @@ class Game:
         store_background = pygame.transform.scale(store_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(store_background, (0, 0))
         font = pygame.font.SysFont(FONT_NAME, 40)
-
-        # --- Texts ---
-        title_text = font.render("Melhorias", True, WHITE)
-        money_text = font.render(f"Dinheiro: R${self.money}", True, WHITE)
-
-        # --- Blitting ---
-        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 50))
-        self.screen.blit(money_text, (20, 20))
 
         self.btn_buy_boat.draw(self.screen)
         self.btn_buy_rod.draw(self.screen)
