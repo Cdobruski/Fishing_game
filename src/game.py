@@ -3,10 +3,12 @@ import time
 import csv
 from src.settings import *
 from src.sprites import *
+from src.settings import resource_path
 
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Type Fishing")
         self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
@@ -55,76 +57,46 @@ class Game:
 
         self.water = Water()
         self.boat = Boat(self.boat_level)
+        self.rod = Rod(self.rod_level)
+        self.float = Float(self.float_level)
         self.fisherman = Fisherman(self.rod_level, self.boat)
         self.fish = Fish(self.difficulty, self.float_level)
         self.all_sprites.add(self.boat, self.fisherman)
         self.current_typed_word = ""
         self.word_start_time = time.time()
-        self.init_menus()
+        self.load_sounds()
+        self.play_music()
 
-    def init_menus(self):
-        # Area Select
+    def load_sounds(self):
+        self.sounds = {
+            "button": pygame.mixer.Sound(resource_path("audio/Botão.mp3")),
+            "catch": pygame.mixer.Sound(resource_path("audio/Som de pesca concluida.mp3")),
+            "fail": pygame.mixer.Sound(resource_path("audio/falha_pesca.mp3")),
+            "cast": pygame.mixer.Sound(resource_path("audio/jogou a vara.mp3")),
+            "vendor": pygame.mixer.Sound(resource_path("audio/Som vendedor 1.mp3")),
+            "float_splash": pygame.mixer.Sound(resource_path("audio/boia na água.mp3")),
+            "windlass": pygame.mixer.Sound(resource_path("audio/durante a pesca.mp3")),
+        }
+        self.sounds["windlass"].set_volume(0.2)
+
+    def play_music(self):
+        pygame.mixer.music.stop()
+        area_name_map = {
+            "river": "Rio",
+            "beach": "Praia"
+        }
+        area_name = area_name_map.get(self.background.area, "Rio")
+
+        music_map = {
+            "main_menu": "audio/Rio_dia.mp3",
+            "playing": f"audio/{area_name}_{self.background.time_of_day}.mp3"
+        }
+        music_file = music_map.get(self.game_state, "audio/Rio_dia.mp3")
         try:
-            self.area_bg = pygame.image.load(resource_path("images/cenario/menu_cenario.png")).convert()
-            self.area_bg = pygame.transform.scale(self.area_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        except (pygame.error, FileNotFoundError) as e:
-            print(f"Warning: Could not load area background: {e}")
-            self.area_bg = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            self.area_bg.fill((0, 0, 0))
-
-        # Position buttons nicely
-        button_width = 300
-        button_height = 200
-        # Rio button (left side)
-        self.btn_rio = Button(SCREEN_WIDTH//3, SCREEN_HEIGHT//2, button_width, button_height, "", image_path="images/cenario/quadro_cenario_rio.png")
-        # Praia button (right side)
-        self.btn_praia = Button(2*SCREEN_WIDTH//3, SCREEN_HEIGHT//2, button_width, button_height, "", image_path="images/cenario/quadro_cenario_praia.png")
-        # Lake button (text based, using default image)
-        self.btn_lago = Button(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 150, button_width, 60, "Lago", font_size=30)
-
-        # Difficulty Select
-        try:
-            self.diff_bg = pygame.image.load(resource_path("images/cenario/menu_dificuldade.png")).convert()
-            self.diff_bg = pygame.transform.scale(self.diff_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        except (pygame.error, FileNotFoundError) as e:
-            print(f"Warning: Could not load difficulty background: {e}")
-            self.diff_bg = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            self.diff_bg.fill((0, 0, 0))
-
-        # Store buttons (creating them here so we can reuse them, but text might need update)
-        # Coordinates derived from background image analysis (Beige slots)
-        # Slots are approx at Y=340, 430, 520 with Center X=393 and Width=661
-        button_width = 661
-        button_height = 60
-        center_x = 393
-
-        self.btn_buy_boat = Button(center_x, 340, button_width, button_height, "")
-        self.btn_buy_rod = Button(center_x, 430, button_width, button_height, "")
-        self.btn_buy_float = Button(center_x, 520, button_width, button_height, "")
-        self.btn_store_back = Button(center_x, 580, 200, 30, "Voltar", font_size=30)
-        self.update_store_buttons()
-
-    def update_store_buttons(self):
-        # Update Boat Button
-        if self.boat_level >= 3:
-            boat_text = "Barco Maximo"
-        else:
-            boat_text = f"Barco Nvl {self.boat_level} -> {self.boat_level+1} (R${self.boat_level*10})"
-        self.btn_buy_boat.update_text(boat_text)
-
-        # Update Rod Button
-        if self.rod_level >= 3:
-            rod_text = "Vara Maxima"
-        else:
-            rod_text = f"Vara Nvl {self.rod_level} -> {self.rod_level+1} (R${self.rod_level*10})"
-        self.btn_buy_rod.update_text(rod_text)
-
-        # Update Float Button
-        if self.float_level >= 4:
-            float_text = "Boia Maxima"
-        else:
-            float_text = f"Boia Nvl {self.float_level} -> {self.float_level+1} (R${self.float_level*10})"
-        self.btn_buy_float.update_text(float_text)
+            pygame.mixer.music.load(resource_path(music_file))
+            pygame.mixer.music.play(-1)
+        except pygame.error:
+            print(f"Could not load music file: {music_file}")
 
     def load_data(self):
         try:
@@ -213,8 +185,8 @@ class Game:
                 running = self.difficulty_select_screen()
             elif self.game_state == "playing":
                 running = self.game_loop()
-            elif self.game_state == "upgrades":
-                running = self.upgrades_screen()
+            elif self.game_state == "store":
+                running = self.store_screen()
             elif self.game_state == "fish_caught":
                 running = self.fish_caught_screen()
             elif self.game_state == "reeling_animation":
@@ -227,6 +199,7 @@ class Game:
         pygame.quit()
 
     def fish_caught_screen(self):
+        self.sounds["windlass"].stop()
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 128))
         self.screen.blit(self.background.image, self.background.rect)
@@ -303,33 +276,35 @@ class Game:
                 return False
             if event.type == pygame.KEYDOWN:
                 self.game_state = "main_menu"
+                self.play_music()
         return True
 
     def main_menu_screen(self):
-        self.screen.blit(self.background.image, self.background.rect)
-        title_font = pygame.font.SysFont(FONT_NAME, 70)
-        option_font = pygame.font.SysFont(FONT_NAME, 50)
+        self.screen.blit(self.main_menu_background, (0, 0))
 
-        title_text = title_font.render("Jogo de Pesca com Digitação", True, WHITE)
-        play_text = option_font.render("Pressione J para Jogar", True, WHITE)
-        upgrades_text = option_font.render("Pressione M para Melhorias", True, WHITE)
-        quit_text = option_font.render("Pressione S para Sair", True, WHITE)
+        play_button = Button(SCREEN_WIDTH/2, 290, 250, 80, "Jogar")
+        store_button = Button(SCREEN_WIDTH/2, 390, 250, 80, "Loja")
+        quit_button = Button(SCREEN_WIDTH/2, 490, 250, 80, "Sair")
 
-        self.screen.blit(title_text, (SCREEN_WIDTH/2 - title_text.get_width()/2, 100))
-        self.screen.blit(play_text, (SCREEN_WIDTH/2 - play_text.get_width()/2, 300))
-        self.screen.blit(upgrades_text, (SCREEN_WIDTH/2 - upgrades_text.get_width()/2, 400))
-        self.screen.blit(quit_text, (SCREEN_WIDTH/2 - quit_text.get_width()/2, 500))
+        buttons = [play_button, store_button, quit_button]
+
+        for button in buttons:
+            button.draw(self.screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_j:
-                    self.game_state = "area_select"
-                elif event.key == pygame.K_m:
-                    self.game_state = "upgrades"
-                elif event.key == pygame.K_s:
-                    return False
+            if play_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.game_state = "area_select"
+            if store_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.game_state = "store"
+                self.sounds["vendor"].play()
+                pygame.mixer.music.stop()
+            if quit_button.is_clicked(event):
+                self.sounds["button"].play()
+                return False
         return True
 
     def difficulty_select_screen(self):
@@ -351,22 +326,31 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_f:
-                    self.difficulty = "easy"
-                    self.reset_game()
-                    self.game_state = "playing"
-                elif event.key == pygame.K_m:
-                    self.difficulty = "medium"
-                    self.reset_game()
-                    self.game_state = "playing"
-                elif event.key == pygame.K_d:
-                    self.difficulty = "hard"
-                    self.reset_game()
-                    self.game_state = "playing"
-                elif event.key == pygame.K_v:
-                    self.background = Scenario("river", "day")
-                    self.game_state = "main_menu"
+            if easy_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.difficulty = "easy"
+                self.reset_game()
+                self.game_state = "playing"
+                self.play_music()
+                self.sounds["windlass"].play(-1)
+            if medium_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.difficulty = "medium"
+                self.reset_game()
+                self.game_state = "playing"
+                self.play_music()
+                self.sounds["windlass"].play(-1)
+            if hard_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.difficulty = "hard"
+                self.reset_game()
+                self.game_state = "playing"
+                self.play_music()
+                self.sounds["windlass"].play(-1)
+            if back_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.game_state = "main_menu"
+                self.play_music()
         return True
 
     def area_select_screen(self):
@@ -390,39 +374,24 @@ class Game:
         
         buttons.append(back_button)
 
-        font = pygame.font.SysFont(FONT_NAME, 50)
-        back_text = font.render("Pressione V para Voltar", True, WHITE)
-        self.screen.blit(back_text, (SCREEN_WIDTH/2 - back_text.get_width()/2, 550))
+        for button in buttons:
+            button.draw(self.screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-
-            # Handle button clicks
-            if self.btn_rio.is_clicked(event):
+            if river_button.is_clicked(event):
+                self.sounds["button"].play()
                 self.background = Scenario("river")
                 self.game_state = "difficulty_select"
-
-            if self.boat_level >= 3 and self.btn_praia.is_clicked(event):
+            if self.boat_level >= 2 and beach_button.is_clicked(event):
+                self.sounds["button"].play()
                 self.background = Scenario("beach")
                 self.game_state = "difficulty_select"
-
-            if self.boat_level >= 2 and self.btn_lago.is_clicked(event):
-                self.background = Scenario("lake")
-                self.game_state = "difficulty_select"
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    self.background = Scenario("river")
-                    self.game_state = "difficulty_select"
-                elif event.key == pygame.K_l and self.boat_level >= 2:
-                    self.background = Scenario("lake")
-                    self.game_state = "difficulty_select"
-                elif event.key == pygame.K_p and self.boat_level >= 3:
-                    self.background = Scenario("beach")
-                    self.game_state = "difficulty_select"
-                elif event.key == pygame.K_v:
-                    self.game_state = "main_menu"
+            if back_button.is_clicked(event):
+                self.sounds["button"].play()
+                self.background = Scenario("river", "day")
+                self.game_state = "main_menu"
         return True
 
     def draw_text_with_outline(self, text, font, color, outline_color, pos, outline_width=2):
@@ -442,6 +411,7 @@ class Game:
         store_background = pygame.transform.scale(store_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(store_background, (0, 0))
         font = pygame.font.SysFont(FONT_NAME, 40)
+        small_font = pygame.font.SysFont(FONT_NAME, 30)
 
         money_text_content = f"Dinheiro: R${self.money}"
         self.draw_text_with_outline(money_text_content, font, WHITE, BLACK, (40, 40))
@@ -494,44 +464,68 @@ class Game:
             if event.type == pygame.QUIT:
                 return False
 
-            if self.btn_store_back.is_clicked(event):
-                self.game_state = "main_menu"
-
-            if self.btn_buy_boat.is_clicked(event):
-                if self.money >= self.boat_level * 10 and self.boat_level < 3:
-                    self.money -= self.boat_level * 10
+            if boat_button.is_clicked(event):
+                if self.money >= boat_cost and self.boat_level < 3:
+                    self.money -= boat_cost
                     self.boat_level += 1
                     self.boat.boat_level = self.boat_level
                     self.boat.load_image()
                     self.save_data()
-                    self.update_store_buttons()
-
-            if self.btn_buy_rod.is_clicked(event):
-                if self.money >= self.rod_level * 10 and self.rod_level < 3:
-                    self.money -= self.rod_level * 10
+            elif rod_button.is_clicked(event):
+                if self.money >= rod_cost and self.rod_level < 3:
+                    self.money -= rod_cost
                     self.rod_level += 1
                     self.fisherman.rod_level = self.rod_level
                     self.fisherman.load_image()
                     self.rod.rod_level = self.rod_level
                     self.rod.load_image()
                     self.save_data()
-                    self.update_store_buttons()
-
-            if self.btn_buy_float.is_clicked(event):
-                if self.money >= self.float_level * 10 and self.float_level < 4:
-                    self.money -= self.float_level * 10
+            elif float_button.is_clicked(event):
+                 if self.money >= float_cost and self.float_level < 4:
+                    self.money -= float_cost
                     self.float_level += 1
+                    self.fish.float_level = self.float_level
                     self.float.float_level = self.float_level
                     self.float.load_image()
                     self.save_data()
-                    self.update_store_buttons()
+            elif back_button.is_clicked(event):
+                self.game_state = "main_menu"
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_v:
+                if event.key == pygame.K_1:
+                    if self.money >= self.boat_level * 10 and self.boat_level < 3:
+                        self.money -= self.boat_level * 10
+                        self.boat_level += 1
+                        self.boat.boat_level = self.boat_level
+                        self.boat.load_image()
+                        self.save_data()
+                        self.sounds["vendor"].play()
+                elif event.key == pygame.K_2:
+                    if self.money >= self.rod_level * 10 and self.rod_level < 3:
+                        self.money -= self.rod_level * 10
+                        self.rod_level += 1
+                        self.fisherman.rod_level = self.rod_level
+                        self.fisherman.load_image()
+                        self.rod.rod_level = self.rod_level
+                        self.rod.load_image()
+                        self.save_data()
+                        self.sounds["vendor"].play()
+                elif event.key == pygame.K_3:
+                    if self.money >= self.float_level * 10 and self.float_level < 4:
+                        self.money -= self.float_level * 10
+                        self.float_level += 1
+                        self.float.float_level = self.float_level
+                        self.float.load_image()
+                        self.save_data()
+                        self.sounds["vendor"].play()
+                elif event.key == pygame.K_v:
                     self.game_state = "main_menu"
+                    self.play_music()
         return True
 
     def reset_game(self):
+        self.sounds["cast"].play()
+        self.sounds["float_splash"].play()
         self.words_caught_count = 0
         self.current_session_score = 0
         self.total_typing_time = 0.0
@@ -557,6 +551,7 @@ class Game:
                 return False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    self.sounds["windlass"].stop()
                     self.game_state = "main_menu"
                 elif event.key == pygame.K_BACKSPACE:
                     self.current_typed_word = self.current_typed_word[:-1]
@@ -572,6 +567,8 @@ class Game:
                         self.popups.add(popup)
 
                         if self.words_caught_count >= words_needed:
+                            self.sounds["windlass"].stop()
+                            self.sounds["catch"].play()
                             money_earned = RARITY_REWARDS[self.fish.rarity] * settings.get("money_multiplier", 1)
                             self.money += money_earned
                             self.total_money_earned += money_earned
@@ -591,6 +588,8 @@ class Game:
 
         time_elapsed = time.time() - self.fishing_start_time
         if time_elapsed > time_limit:
+            self.sounds["windlass"].stop()
+            self.sounds["fail"].play()
             self.last_score = self.current_session_score
             self.last_money = 0
             self.append_run_data()
